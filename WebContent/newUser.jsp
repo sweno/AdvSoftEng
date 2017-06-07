@@ -16,14 +16,27 @@
         </c:forEach>
     </c:if>
 
-<!-- action="${pageContext.request.contextPath}/newUser" -->    
 <form action="${pageContext.request.contextPath}/newUser" method="post">
-        <label for="name">Name : </label>
-        <input type="text" name="name" id="name" value="">
-        <label for="email">Email: </label>
-        <input type="text" name="email" id="email" value="">
-        <label for="password">Password:</label>
-        <input type="text" name="password" id="password" value="">
+        <label for="name">Company Name : </label> <input type="text" name="name" id="name" value=""><br>
+        <label for="email">Email: </label> <input type="text" name="email" id="email" value=""><br>
+        <label for="password">Password:</label> <input type="password" name="password" id="password" value=""><br>
+        <label for="Buyer">I will be buying: </label> <input type="checkbox" name="Buyer" id="Buyer" value="">
+        <label for="Seller">I will be selling: </label> <input type="checkbox" name="Seller" id="Seller" value=""><br>
+        Billing Address:<br>
+        <label for="Bill_Street1">Street: </label> <input type="text" name="Bill_Street1" id="Bill_Street1" value=""><br>
+        <label for="Bill_Street2">Street: </label> <input type="text" name="Bill_Street2" id="Bill_Street2" value=""><br>
+        <label for="Bill_City">City: </label> <input type="text" name="Bill_City" id="Bill_City" value=""><br>
+        <label for="Bill_State">State: </label> <input type="text" name="Bill_State" id="Bill_State" value=""><br>
+        <label for="Bill_Zip">Postal Code: </label> <input type="text" name="Bill_Zip" id="Bill_Zip" value=""><br>
+        <label for="Bill_Country">Country: </label> <input type="text" name="Bill_Country" id="Bill_Country" value=""><br>
+        Shipping Address: <br>
+        <label for="SameShip">Shipping address is the same as billing: </label> <input type="checkbox" name="SameShip" id="SameShip" value=""><br>
+        <label for="Ship_Street1">Street: </label> <input type="text" name="Ship_Street1" id="Ship_Street1" value=""><br>
+        <label for="Ship_Street2">Street: </label> <input type="text" name="Ship_Street2" id="Ship_Street2" value=""><br>
+        <label for="Ship_City">City: </label> <input type="text" name="Ship_City" id="Ship_City" value=""><br>
+        <label for="Ship_State">State: </label> <input type="text" name="Ship_State" id="Ship_State" value=""><br>
+        <label for="Ship_Zip">Postal Code: </label> <input type="text" name="Ship_Zip" id="Ship_Zip" value=""><br>
+        <label for="Ship_Country">Country: </label> <input type="text" name="Ship_Country" id="Ship_Country" value=""><br>
         <input type="submit" name="signup" value="Sign Up">
     </form>
 </body>

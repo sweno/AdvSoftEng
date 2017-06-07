@@ -1,4 +1,4 @@
-package cs604;
+package com.cs604;
 
 public class Address{
 	private String full_name;

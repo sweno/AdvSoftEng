@@ -1,4 +1,4 @@
-package cs604;
+package com.cs604;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -10,14 +10,15 @@ public class User{
 	private String password_hash;
 	private Address billing_address;
 	private Address shipping_address;
-	private Boolean buyer_flag;
-	private Boolean seller_flag;
+	private boolean buyer_flag;
+	private boolean seller_flag;
+	private boolean shipping_is_billing;
 	private MessageDigest mdSHA256;
 	
 	public User(){
 	}
 	
-	public User(String uName, String uEmail, String uPassword){
+	public User(String uName, String uEmail, String uPassword, Address bAddr, Address sAddr, boolean buyer, boolean seller, boolean SisB){
 		name = uName;
 		email = uEmail;
 		// init the message digest
@@ -27,11 +28,14 @@ public class User{
 			System.err.println("No SHA256 Message Digest: " + e.getMessage());
 		}
 		password_hash = passwordHash(uPassword);
-		buyer_flag = false;
-		seller_flag = false;
+		billing_address = bAddr;
+		shipping_address = sAddr;
+		buyer_flag = buyer;
+		seller_flag = seller;
+		shipping_is_billing = SisB;
 	}
 	
-	protected User(int uID, String uName, String uEmail, String uPHash, Address bAddr){
+	protected User(int uID, String uName, String uEmail, String uPHash, Address bAddr, Address sAddr, boolean buyer, boolean seller, boolean SisB){
 		// function specifically for importing data from DB
 		user_id = uID;
 		name = uName;
@@ -44,8 +48,10 @@ public class User{
 		}
 		password_hash = uPHash;
 		billing_address = bAddr;
-		buyer_flag = false;
-		seller_flag = false;
+		shipping_address = sAddr;
+		buyer_flag = buyer;
+		seller_flag = seller;
+		shipping_is_billing = SisB;
 	}
 	
 	public int GetID(){
@@ -134,8 +140,12 @@ public class User{
 		// remove the temporary id from the browser cookie store
 	}
 	
-	public void commit(){
-		//push contents to DB
+	public boolean GetShippingIsBilling() {
+		return shipping_is_billing;
+	}
+
+	public void SetShippingIsBilling(boolean shipping_is_billing) {
+		this.shipping_is_billing = shipping_is_billing;
 	}
 	
 	private String passwordHash(String uPassword){
@@ -148,4 +158,5 @@ public class User{
 //		return results;
 		return new String(mdSHA256.digest());
 	}
+
 }

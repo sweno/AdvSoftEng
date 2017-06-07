@@ -1,4 +1,4 @@
-package cs604;
+package com.cs604;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -24,12 +24,16 @@ public class ConnectDAO {
 	protected void connect() throws SQLException {
         if (jdbcConnection == null || jdbcConnection.isClosed()) {
             try {
-                Class.forName("com.mysql.jdbc.Driver");
+                Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
             } catch (ClassNotFoundException e) {
                 throw new SQLException(e);
             }
-            jdbcConnection = DriverManager.getConnection(
-                                        jdbcURL, jdbcUsername, jdbcPassword);
+        	System.out.println("Database - attempting connection to: " + jdbcURL +" username: "+jdbcUsername+"  password: "+jdbcPassword);
+            jdbcConnection = DriverManager.getConnection(jdbcURL, jdbcUsername, jdbcPassword);
+//        	System.out.println("Database - attempting connection to: " + jdbcURL);
+//            jdbcConnection = DriverManager.getConnection(jdbcURL);
+        	System.out.println("Database - we should be connected");
+
         }
     }
      
@@ -42,25 +46,64 @@ public class ConnectDAO {
 // User Database CRUD operations:
     public int insertUser(User newUser){
     	int newUserID = 0;
-    	String countryID = null;
-    	String provID = null;
+    	int countryID = 0;
+    	int provID = 0;
     	try{
     		Address newAddress = newUser.GetBillingAddress();
     		//This is a three step process
+    		
+    		// test to see if the Country already exists
+    		String sql = "SELECT CountryID FROM Tbl_Country WHERE CountryName = ? LIMIT 1;";
+    		connect();
+    		PreparedStatement state = jdbcConnection.prepareStatement(sql);
+    		state.setString(1, newAddress.GetCountry());
+        	System.out.println("Database - pre country check");
+    		ResultSet results = state.executeQuery(sql);
+    		
+	        if (results.next()) {
+	        	// we got a result, the entry exists
+	        	countryID = results.getInt(1);
+	        } else {
+	        	// no results, we need to insert it
+	    		sql = "INSERT INTO Tbl_Country (CountryName) VALUES (?);";
+	    		state = jdbcConnection.prepareStatement(sql);
+	    		state.setString(1, newAddress.GetCountry());
+	        	System.out.println("Database - pre country insert");
+	        	boolean rowInserted = state.executeUpdate() == 1;
+	        	
+	    		//now that it exists, get the ID
+	    		if(rowInserted){
+					sql = "SELECT LAST_INSERT_ID();";
+		    		state = jdbcConnection.prepareStatement(sql);
+		    		results = state.executeQuery(sql);
+		    		if (results.next()) {
+		    			countryID = results.getInt(1);
+			        }
+				}
+
+	    		
+	    		
+	        }
+
+    		
     		//1) if the CountryName doesn't exist, insert it
     		String sql = "INSERT INTO Tbl_Country (CountryName) SELECT * FROM (SELECT ?) AS tmp " + 
-    					 "WHERE NOT EXISTS (SELECT CountryName FROM Tbl_Country WHERE CountryName = ?) LIMIT 1;";
+    					 "WHERE NOT EXISTS (SELECT CountryName FROM Tbl_Country WHERE CountryName = ?);";
     		connect();
     		PreparedStatement state = jdbcConnection.prepareStatement(sql);
     		state.setString(1, newAddress.GetCountry());
     		state.setString(2, newAddress.GetCountry());
+        	System.out.println("Database - pre country sql query");
     		state.executeUpdate(); // all that we care about is that we didn't throw an error, both 0 or 1 could be valid returns.
+        	System.out.println("Database - post country sql query");
     		
     		//1a)get the CountryID for the Country in question
-    		sql = "SELECT CountryID FROM Tbl_Country WHERE CountryName = ? LIMIT 1;";
+    		sql = "SELECT CountryID FROM Tbl_Country WHERE CountryName = ?;";
     		state = jdbcConnection.prepareStatement(sql);
     		state.setString(1, newAddress.GetCountry());
+        	System.out.println("Database - pre countryID sql query");
     		ResultSet results = state.executeQuery(sql);
+        	System.out.println("Database - post countryID sql query");
 	        
 	        if (results.next()) {
 	        	countryID = results.getString(1);
@@ -84,7 +127,7 @@ public class ConnectDAO {
 	        }
 
     		sql = "INSERT INTO Tbl_User (UserBillAdd1, UserBillAdd2, UserBillCity, UserBillCountryID, UserBillPC, UserBillProvID, " + 
-    		 	  "UserCompName, UserEmail, UserPWD) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);";
+    		 	  "UserCompName, UserEmail, UserPWD, UserBuyerBIt, UserSellerBit, UserShipSame) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
 			
 			state = jdbcConnection.prepareStatement(sql);
     		state.setString(1, newAddress.GetStreet1());
@@ -96,6 +139,9 @@ public class ConnectDAO {
 			state.setString(7, newUser.GetName());
 			state.setString(8, newUser.GetEmail());
 			state.setString(9, newUser.GetPasswordHash());
+			state.setBoolean(10, newUser.GetBuyerFlag());
+			state.setBoolean(11, newUser.GetSellerFlag());
+			state.setBoolean(12, newUser.GetShippingIsBilling());
 			
 			boolean rowUpdated = state.executeUpdate() > 0;
 			if(rowUpdated){
@@ -111,6 +157,8 @@ public class ConnectDAO {
 			disconnect();
 		} catch (SQLException e) {
         	System.out.println("Database Error - insertUser: " + e.getMessage());
+        	System.out.println("Database Error - error code:" + e.getErrorCode());
+        	System.out.println("Database Error - sql state:" + e.getSQLState());
 		}
     	return newUserID;
     }
@@ -121,7 +169,8 @@ public class ConnectDAO {
     		//do a three table join on User, Prov, and County
     		String sql = "SELECT Tbl_User.UserID, Tbl_User.UserEmail, Tbl_User.UserPWD, Tbl_User.UserCompName, " +
     					 "Tbl_User.UserBillCity, Tbl_Prov.ProvName, Tbl_User.UserBillPC, Tbl_Country.CountryName " + 
-    				     "Tbl_User.UserBillAdd1, Tbl_User.UserBillAdd2, FROM Tbl_User " + 
+    				     "Tbl_User.UserBillAdd1, Tbl_User.UserBillAdd2, Tbl_User.UserBuyerBIt, Tbl_User.UserSellerBit, " + 
+    				     "Tbl_User.UserShipSame, FROM Tbl_User " + 
     					 "LEFT JOIN Tbl_Prov on Tbl_User.UserBillProvID = Tbl_Prov.ProvID " + 
     					 "LEFT JOIN Tbl_Country on Tbl_User.UserBillCountryID = Tbl_Country.CountryID;";
 			connect();
@@ -130,19 +179,46 @@ public class ConnectDAO {
 	        ResultSet results = state.executeQuery(sql);
 	         
 	        while (results.next()) {
+	        	int userID = results.getInt("UserID");
+	        	String compName = results.getString("UserCompName");
 	        	// build the address
-	        	Address shipAddr = new Address(results.getString("UserCompName"),
+	        	Address billAddr = new Address(compName,
 	        								   results.getString("UserBillAdd1"),
 	        								   results.getString("UserBillAdd2"),
 	        								   results.getString("UserBillCity"),
 	        								   results.getString("ProvName"),
 	        								   results.getString("UserBillPC"),
 	        								   results.getString("CountryName"));
-	        	User newUser = new User(results.getInt("UserID"), 
+	        	Address shipAddr = null;
+	        	if(!results.getBoolean("UserShipSame")){
+	        		// shipping is different than billing, so fetch the shipping address
+	        		String shipSql = "SELECT Tbl_UserShip.UserShipAdd1, Tbl_UserShip.UserShipAdd2, Tbl_UserShip.UserShipCity, " +
+	        				"Tbl_UserShip.UserShipCountryID, Tbl_UserShip.UserShipID, Tbl_UserShip.UserShipPC, Tbl_UserShip.UserShipProvID, " +
+	        				"Tbl_UserShip.UserShipUserID FROM Tbl_UserShip WHERE UserShipUserID = ?";
+	        		
+	        		PreparedStatement shipState = jdbcConnection.prepareStatement(shipSql);
+	        		shipState.setInt(1, userID);
+	    	        ResultSet shipResults = shipState.executeQuery(shipSql);
+	    	        
+	    	        if(shipResults.next()){
+	    	        	shipAddr = new Address(compName,
+	    	        						   shipResults.getString("UserShipAdd1"),
+	    	        						   shipResults.getString("UserShipAdd2"),
+	    	        						   shipResults.getString("UserShipCity"),
+	    	        						   shipResults.getString("ProvName"),
+	    	        						   shipResults.getString("UserBillPC"),
+	    	   								   shipResults.getString("CountryName"));
+	    	        }
+	        	}
+
+	        	User newUser = new User(userID, 
 	        							results.getString("UserCompName"), 
 	        							results.getString("UserEmail"), 
 	        							results.getString("UserPWD"), 
-	        							shipAddr);
+	        							billAddr, shipAddr, 
+	        							results.getBoolean("UserBuyerBIt"),
+	        							results.getBoolean("UserSellerBit"),
+	        							results.getBoolean("UserShipSame"));
 	            userList.add(newUser);
 	        }
 	         
@@ -260,7 +336,7 @@ public class ConnectDAO {
     	return rowUpdated;
     }
     
-    public User getUser(String userID){
+    public User getUser(int userID){
     	User newUser = null;
        	try{
     		String sql = "Select Tbl_User.UserID, Tbl_User.UserEmail, Tbl_User.UserPWD, Tbl_User.UserCompName, " +
@@ -271,25 +347,50 @@ public class ConnectDAO {
     					 "WHERE Tbl_User.UserID = ?";
 			connect();
     		PreparedStatement state = jdbcConnection.prepareStatement(sql);
-    		state.setString(1, userID);
+    		state.setInt(1, userID);
     		
 	        ResultSet results = state.executeQuery(sql);
-	         
 	        if (results.next()) {
-	        	// build the address
-	        	Address shipAddr = new Address(results.getString("UserCompName"),
+	        	// build the billing address
+	        	String companyName = results.getString("UserCompName");
+	        	Address billAddr = new Address(companyName,
 	        								   results.getString("UserBillAdd1"),
 	        								   results.getString("UserBillAdd2"),
 	        								   results.getString("UserBillCity"),
 	        								   results.getString("ProvName"),
 	        								   results.getString("UserBillPC"),
 	        								   results.getString("CountryName"));
+	        	// possibly build the shipping address
+	        	boolean billIsShip = results.getBoolean("UserShipSame");
+	        	Address shipAddr = null;
+	        	if(!billIsShip){
+	        		String shipSql = "SELECT Tbl_UserShip.UserShipAdd1, Tbl_UserShip.UserShipAdd2, Tbl_UserShip.UserShipCity, " +
+	        				"Tbl_UserShip.UserShipCountryID, Tbl_UserShip.UserShipID, Tbl_UserShip.UserShipPC, Tbl_UserShip.UserShipProvID, " +
+	        				"Tbl_UserShip.UserShipUserID FROM Tbl_UserShip WHERE UserShipUserID = ?";
+	        		
+	        		PreparedStatement shipState = jdbcConnection.prepareStatement(shipSql);
+	        		shipState.setInt(1, userID);
+	    	        ResultSet shipResults = shipState.executeQuery(shipSql);
+	    	        
+	    	        if(shipResults.next()){
+	    	        	shipAddr = new Address(companyName,
+	    	        						   shipResults.getString("UserShipAdd1"),
+	    	        						   shipResults.getString("UserShipAdd2"),
+	    	        						   shipResults.getString("UserShipCity"),
+	    	        						   shipResults.getString("ProvName"),
+	    	        						   shipResults.getString("UserBillPC"),
+	    	   								   shipResults.getString("CountryName"));
+	    	        }
 	        	// create the user
-	        	newUser = new User(results.getInt("UserID"), 
-	        							results.getString("UserCompName"), 
-	        							results.getString("UserEmail"), 
-	        							results.getString("UserPWD"), 
-	        							shipAddr);
+	        	newUser = new User(userID, 
+	        					   results.getString("UserCompName"), 
+	        					   results.getString("UserEmail"), 
+	        					   results.getString("UserPWD"), 
+	        					   billAddr, shipAddr,
+	        					   results.getBoolean("UserBuyerBIt"),
+	        					   results.getBoolean("UserSellerBit"),
+	        					   billIsShip);
+	        	}
 	        }
 	        
 	        results.close();
@@ -545,14 +646,22 @@ public class ConnectDAO {
     	List<Listing> listingList = new ArrayList<>();
     	try{
     	// userID -> gets list of products, products gets list of Listings.
-    		String sql = "Select ProdID FROM Tbl_Prod WHERE ProdSubmitUserID = ?;";
+    		String sql = "Select ProdID FROM Tbl_Prod 
+    		 WHERE ProdSubmitUserID = ?;";
+    		 
+    		 String sql = "SELECT Tbl_Prod.ProdName, Tbl_Prod.ProdDesc, Tbl_Prod.ProdQTY, Tbl_Prod.  Tbl_List.
+
+ FROM Tbl_Prod LEFT JOIN Tbl_List on Tbl_Prod.ProdID = Tbl_List.ListProdID
+    		 WHERE Tbl_Prod.ProdSubmitUserID = ?;";
+    		 
 			connect();
     		PreparedStatement state = jdbcConnection.prepareStatement(sql);
 	        ResultSet prodResults = state.executeQuery(sql);
 			
+			//TODO: figure out the nested/join statement that will return a list of Listings from 
+			// a single user ID
 			
 			
-    		
     		sql = "Select * FROM Tbl_List WHERE ...;";
     		state = jdbcConnection.prepareStatement(sql);
 	        ResultSet results = state.executeQuery(sql);
@@ -630,7 +739,9 @@ public class ConnectDAO {
     	try{
     		String sql = "INSERT INTO Tbl_Prod (ProdDesc, ProdKeywords, ProdName, ProdQTY, ProdSubmitDate, ProdSubmitUserID) " + 
     					 "VALUES (?, ?, ?, ?, GETDATE(), ?);";
-			
+
+    		//TODO: also manage Tbl_ProdKeyword
+
     		PreparedStatement state = jdbcConnection.prepareStatement(sql);
     		state.setString(1, newItem.GetDescription());
     		state.setString(2, newItem.GetKeywords());
@@ -651,11 +762,122 @@ public class ConnectDAO {
 			state.close();
 			disconnect();
 		} catch (SQLException e) {
-        	System.out.println("Database Error - insertListing: " + e.getMessage());
+        	System.out.println("Database Error - insertProduct: " + e.getMessage());
 		}
     	return newItemID;
     }
     
+    public List<Item> listProducts(){
+    	List<Item> itemList = new ArrayList<>();
+    	try{
+    		String sql = "Select * FROM Tbl_Prod;";
+
+    		//TODO: also manage Tbl_ProdKeyword
+
+    		connect();
+    		PreparedStatement state = jdbcConnection.prepareStatement(sql);
+	        ResultSet results = state.executeQuery(sql);
+	        
+	        while (results.next()) {
+	        	// while we have new results, build the bid list
+	        	Item newItem = new Item(results.getInt("ProdID"),
+	        						 results.getInt("ProdSubmitUserID"),
+	        						 results.getString("ProdName"),
+	        						 results.getString("ProdDesc"),
+	        						 results.getString("ProdKeywords"),
+	        						 results.getInt("ProdQTY"),
+	        						 results.getString("ProdSubmitDate"));
+	        	itemList.add(newItem);
+	        }
+
+	        results.close();
+	        state.close();
+	        disconnect();
+
+    	} catch (SQLException e) {
+        	System.out.println("Database Error - listProducts: " + e.getMessage());
+		}
+    	return itemList;
+    }
+
+    public List<Item> listProductsForUser(int userID){
+    	List<Item> itemList = new ArrayList<>();
+    	try{
+    		String sql = "Select * FROM Tbl_Prod WHERE ProdSubmitUserID = ?;";
+
+    		//TODO: also manage Tbl_ProdKeyword
+
+    		connect();
+    		PreparedStatement state = jdbcConnection.prepareStatement(sql);
+    		state.setInt(1, userID);
+	        ResultSet results = state.executeQuery(sql);
+	        
+	        while (results.next()) {
+	        	// while we have new results, build the bid list
+	        	Item newItem = new Item(results.getInt("ProdID"),
+	        						 results.getInt("ProdSubmitUserID"),
+	        						 results.getString("ProdName"),
+	        						 results.getString("ProdDesc"),
+	        						 results.getString("ProdKeywords"),
+	        						 results.getInt("ProdQTY"),
+	        						 results.getString("ProdSubmitDate"));
+	        	itemList.add(newItem);
+	        }
+
+	        results.close();
+	        state.close();
+	        disconnect();
+
+    	} catch (SQLException e) {
+        	System.out.println("Database Error - listProducts: " + e.getMessage());
+		}
+    	return itemList;
+    }
+
+    public boolean updateProduct(Item updated){
+      	try{
+    		String sql = "UPDATE Tbl_Prod SET ProdDesc = ?, ProdKeywords = ?, ProdName = ?, ProdQTY = ?, ProdSubmitDate = ?," + 
+    				     "ProdSubmitUserID = ? WHERE ProdID = ?;";
+    		
+    		//TODO: also manage Tbl_ProdKeyword
+    		
+    		connect();
+    		PreparedStatement state = jdbcConnection.prepareStatement(sql);
+    		state.setString(1, updated.GetDescription());
+    		state.setString(2, updated.GetKeywords());
+    		state.setString(3, updated.GetName());
+    		state.setInt(4, updated.GetQuantityInStock());
+    		state.setString(5, updated.GetSubmitDate());
+    		state.setInt(6, updated.GetSellerID());
+    		state.setInt(7, updated.GetItemID());
+			
+    		boolean rowUpdated = state.executeUpdate() > 0;
+    		state.close();
+    		disconnect();
+    		return rowUpdated;
+    		
+    	} catch (SQLException e) {
+        	System.out.println("Database Error - updateProduct: " + e.getMessage());
+        	return false;
+		}
+    }
     
+    public boolean deleteProduct(int ProdID){
+    	try{
+    		String sql = "DELETE FROM Tbl_Prod where ProdID = ?";
+    		connect();
+    		PreparedStatement state = jdbcConnection.prepareStatement(sql);
+    		state.setInt(1, ProdID);
+    		
+    		boolean rowDeleted = state.executeUpdate() > 0;
+    		state.close();
+    		disconnect();
+    		return rowDeleted;
+    		
+    	} catch (SQLException e) {
+        	System.out.println("Database Error - deleteProduct: " + e.getMessage());
+        	return false;
+		}
+    }
 
 }

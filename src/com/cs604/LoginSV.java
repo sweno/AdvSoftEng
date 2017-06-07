@@ -1,4 +1,4 @@
-package cs604;
+package com.cs604;
 
 import java.io.IOException;
 import javax.servlet.ServletException;

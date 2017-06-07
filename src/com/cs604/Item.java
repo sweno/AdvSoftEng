@@ -1,4 +1,4 @@
-package cs604;
+package com.cs604;
 
 public class Item {
 	private int item_id_num;
@@ -7,23 +7,19 @@ public class Item {
 	private String description;
 	private String keywords;
 	private int quantity_in_stock;
-	private int minimum_buy_quantity;
-	private float price;
-	private boolean accept_bids_at_price_flag;
+	private String submit_date;
 	
 	public Item(){
 	}
 	
-	public Item(int itemID, int sellerID, String iName, String iDesc, String iKeywords, int quant, int minimum, float iPrice, boolean acceptFlag){
+	public Item(int itemID, int sellerID, String iName, String iDesc, String iKeywords, int quant, String subDate){
 		item_id_num = itemID;
 		seller_id_num = sellerID;
 		name = iName;
 		description = iDesc;
 		keywords = iKeywords;
 		quantity_in_stock = quant;
-		minimum_buy_quantity = minimum;
-		price = iPrice;
-		accept_bids_at_price_flag = acceptFlag;
+		submit_date = subDate;
 	}
 	
 	public int GetItemID(){
@@ -66,28 +62,12 @@ public class Item {
 		quantity_in_stock = newQuant;
 	}
 	
-	public int GetMinimumBuyQuantity(){
-		return minimum_buy_quantity;
+	public String GetSubmitDate() {
+		return submit_date;
 	}
-	
-	public void SetMinimumBuyQuantity(int newMin){
-		minimum_buy_quantity = newMin;
+
+	public void SetSubmitDate(String submit_date) {
+		this.submit_date = submit_date;
 	}
-	
-	public float GetPrice(){
-		return price;
-	}
-	
-	public void SetPrice(int newPrice){
-		price = newPrice;
-	}
-	
-	public boolean GetAcceptBidsAtPrice(){
-		return accept_bids_at_price_flag;
-	}
-	
-	public void SetAcceptBidsAtPrice(boolean newSet){
-		accept_bids_at_price_flag = newSet;
-	}
-	
+
 }

@@ -1,4 +1,4 @@
-package cs604;
+package com.cs604;
 
 public class Bid {
 	private int bid_id;

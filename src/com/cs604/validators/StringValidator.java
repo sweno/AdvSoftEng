@@ -1,4 +1,4 @@
-package cs604.validators;
+package com.cs604.validators;
 
 public class StringValidator {
 	public static boolean validate(String value) {

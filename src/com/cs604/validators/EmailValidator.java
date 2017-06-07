@@ -1,4 +1,4 @@
-package cs604.validators;
+package com.cs604.validators;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
