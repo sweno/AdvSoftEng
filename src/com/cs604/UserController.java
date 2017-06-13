@@ -16,7 +16,7 @@ import com.cs604.validators.StringValidator;
 /**
  * Servlet implementation class UserController
  */
-@WebServlet(description = "handles users interaction", urlPatterns = { "/UserController", "/newUser" })
+@WebServlet(description = "handles users interaction", urlPatterns = { "/UserController", "/newUser", "/Index" })
 public class UserController extends HttpServlet {
 	private static final long serialVersionUID = 1L;
     private ConnectDAO connectDB;
@@ -47,7 +47,7 @@ public class UserController extends HttpServlet {
 		
 		switch(action){
 			case "/newUser": parseNewUserForm(request, response); break;
-			case "/login": parseLoginPage(request, response); break;
+			case "/Index": parseLoginPage(request, response); break;
 			default: parseWelcomePage(request, response); break;
 		}
 	}
@@ -110,7 +110,7 @@ public class UserController extends HttpServlet {
 	}
 	
 	private void parseWelcomePage(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		
+		response.getWriter().append("Served at: ").append(request.getContextPath());
 	}
    	
    	private String destinationUrl(List<String> problems){

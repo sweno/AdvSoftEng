@@ -30,8 +30,6 @@ public class ConnectDAO {
             }
         	System.out.println("Database - attempting connection to: " + jdbcURL +" username: "+jdbcUsername+"  password: "+jdbcPassword);
             jdbcConnection = DriverManager.getConnection(jdbcURL, jdbcUsername, jdbcPassword);
-//        	System.out.println("Database - attempting connection to: " + jdbcURL);
-//            jdbcConnection = DriverManager.getConnection(jdbcURL);
         	System.out.println("Database - we should be connected");
 
         }
@@ -52,43 +50,9 @@ public class ConnectDAO {
     		Address newAddress = newUser.GetBillingAddress();
     		//This is a three step process
     		
-    		// test to see if the Country already exists
-    		String sql = "SELECT CountryID FROM Tbl_Country WHERE CountryName = ? LIMIT 1;";
-    		connect();
-    		PreparedStatement state = jdbcConnection.prepareStatement(sql);
-    		state.setString(1, newAddress.GetCountry());
-        	System.out.println("Database - pre country check");
-    		ResultSet results = state.executeQuery(sql);
-    		
-	        if (results.next()) {
-	        	// we got a result, the entry exists
-	        	countryID = results.getInt(1);
-	        } else {
-	        	// no results, we need to insert it
-	    		sql = "INSERT INTO Tbl_Country (CountryName) VALUES (?);";
-	    		state = jdbcConnection.prepareStatement(sql);
-	    		state.setString(1, newAddress.GetCountry());
-	        	System.out.println("Database - pre country insert");
-	        	boolean rowInserted = state.executeUpdate() == 1;
-	        	
-	    		//now that it exists, get the ID
-	    		if(rowInserted){
-					sql = "SELECT LAST_INSERT_ID();";
-		    		state = jdbcConnection.prepareStatement(sql);
-		    		results = state.executeQuery(sql);
-		    		if (results.next()) {
-		    			countryID = results.getInt(1);
-			        }
-				}
-
-	    		
-	    		
-	        }
-
-    		
     		//1) if the CountryName doesn't exist, insert it
-    		String sql = "INSERT INTO Tbl_Country (CountryName) SELECT * FROM (SELECT ?) AS tmp " + 
-    					 "WHERE NOT EXISTS (SELECT CountryName FROM Tbl_Country WHERE CountryName = ?);";
+    		String sql = "IF NOT EXISTS (SELECT TOP 1 CountryID FROM Tbl_Country WHERE CountryName = ?) " + 
+    					 "INSERT INTO Tbl_Country (CountryName) VALUES (?);";
     		connect();
     		PreparedStatement state = jdbcConnection.prepareStatement(sql);
     		state.setString(1, newAddress.GetCountry());
@@ -98,34 +62,35 @@ public class ConnectDAO {
         	System.out.println("Database - post country sql query");
     		
     		//1a)get the CountryID for the Country in question
-    		sql = "SELECT CountryID FROM Tbl_Country WHERE CountryName = ?;";
+    		sql = "SELECT TOP 1 CountryID FROM Tbl_Country WHERE CountryName = ?;";
     		state = jdbcConnection.prepareStatement(sql);
     		state.setString(1, newAddress.GetCountry());
         	System.out.println("Database - pre countryID sql query");
-    		ResultSet results = state.executeQuery(sql);
+    		ResultSet results = state.executeQuery();
         	System.out.println("Database - post countryID sql query");
 	        
 	        if (results.next()) {
-	        	countryID = results.getString(1);
+	        	countryID = results.getInt(1);
 	        }
+	        
     		//2) if  the State (prov) name doesn't exist insert it
-	        sql = "INSERT INTO Tbl_Prov (ProvName) SELECT * FROM (SELECT ?) AS tmp " + 
-				  "WHERE NOT EXISTS (SELECT ProvName FROM Tbl_Prov WHERE ProvName = ?) LIMIT 1;";
+	        sql = "IF NOT EXISTS (SELECT TOP 1 ProvID FROM Tbl_Prov WHERE ProvName = ?) " + 
+	        	  "INSERT INTO Tbl_Prov (ProvName) VALUES (?);";
 	        state = jdbcConnection.prepareStatement(sql);
     		state.setString(1, newAddress.GetState());
     		state.setString(2, newAddress.GetState());
     		state.executeUpdate(); // all that we care about is that we didn't throw an error, both 0 or 1 could be valid returns.
     	
     		//2a) get the ProvID for the State in question
-    		sql = "SELECT ProvID FROM Tbl_Prov WHERE ProvName = ? LIMIT 1;";
+    		sql = "SELECT TOP 1 ProvID FROM Tbl_Prov WHERE ProvName = ?;";
     		state = jdbcConnection.prepareStatement(sql);
     		state.setString(1, newAddress.GetState());
-    		results = state.executeQuery(sql);
+    		results = state.executeQuery();
 	        
 	        if (results.next()) {
-	        	provID = results.getString(1);
+	        	provID = results.getInt(1);
 	        }
-
+			
     		sql = "INSERT INTO Tbl_User (UserBillAdd1, UserBillAdd2, UserBillCity, UserBillCountryID, UserBillPC, UserBillProvID, " + 
     		 	  "UserCompName, UserEmail, UserPWD, UserBuyerBIt, UserSellerBit, UserShipSame) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
 			
@@ -133,9 +98,9 @@ public class ConnectDAO {
     		state.setString(1, newAddress.GetStreet1());
     		state.setString(2, newAddress.GetStreet2());
     		state.setString(3, newAddress.GetCity());
-    		state.setString(4, countryID);
+    		state.setInt(4, countryID);
     		state.setString(5, newAddress.GetZip());
-    		state.setString(6, provID);
+    		state.setInt(6, provID);
 			state.setString(7, newUser.GetName());
 			state.setString(8, newUser.GetEmail());
 			state.setString(9, newUser.GetPasswordHash());
@@ -145,12 +110,16 @@ public class ConnectDAO {
 			
 			boolean rowUpdated = state.executeUpdate() > 0;
 			if(rowUpdated){
-				sql = "SELECT LAST_INSERT_ID();";
+				sql = "SELECT TOP 1 UserID FROM Tbl_User WHERE UserEmail = ?";
 	    		state = jdbcConnection.prepareStatement(sql);
-	    		results = state.executeQuery(sql);
+	    		state.setString(1, newUser.GetEmail());
+	    		results = state.executeQuery();
+	    		
 	    		if (results.next()) {
 		        	newUserID = results.getInt(1);
 		        }
+	    		
+		        System.out.println("Database - insertUser: newUserID = " + newUserID);
 			}
 			
 			state.close();
@@ -198,7 +167,7 @@ public class ConnectDAO {
 	        		
 	        		PreparedStatement shipState = jdbcConnection.prepareStatement(shipSql);
 	        		shipState.setInt(1, userID);
-	    	        ResultSet shipResults = shipState.executeQuery(shipSql);
+	    	        ResultSet shipResults = shipState.executeQuery();
 	    	        
 	    	        if(shipResults.next()){
 	    	        	shipAddr = new Address(compName,
@@ -253,8 +222,7 @@ public class ConnectDAO {
     
     public boolean updateUser(User updateUser){
     	try{
-    		String sql = "UPDATE Tbl_User SET UserCompName = ?, UserEmail = ?, UserPWD = ? " + 
-    					 "WHERE UserID = ?;";
+    		String sql = "UPDATE Tbl_User SET UserCompName = ?, UserEmail = ?, UserPWD = ? WHERE UserID = ?;";
     		connect();
     		PreparedStatement state = jdbcConnection.prepareStatement(sql);
     		state.setString(1, updateUser.GetName());
@@ -273,15 +241,15 @@ public class ConnectDAO {
 		}
     }
     
-    public boolean updateAddressForUser(String UserID, Address newAddress){
+    public boolean updateBillAddressForUser(String UserID, Address newAddress){
     	boolean rowUpdated = false;
     	String countryID = null;
     	String provID = null;
     	try{
     		//This is a three step process
     		//1) if the CountryName doesn't exist, insert it
-    		String sql = "INSERT INTO Tbl_Country (CountryName) SELECT * FROM (SELECT ?) AS tmp " + 
-    					 "WHERE NOT EXISTS (SELECT CountryName FROM Tbl_Country WHERE CountryName = ?) LIMIT 1;";
+    		String sql = "IF NOT EXISTS (SELECT TOP 1 CountryName FROM Tbl_Country WHERE CountryName = ?) " + 
+    					 "INSERT INTO Tbl_Country (CountryName) VALUES (?);";
     		connect();
     		PreparedStatement state = jdbcConnection.prepareStatement(sql);
     		state.setString(1, newAddress.GetCountry());
@@ -292,14 +260,14 @@ public class ConnectDAO {
     		sql = "SELECT CountryID FROM Tbl_Country WHERE CountryName = ? LIMIT 1;";
     		state = jdbcConnection.prepareStatement(sql);
     		state.setString(1, newAddress.GetCountry());
-    		ResultSet results = state.executeQuery(sql);
+    		ResultSet results = state.executeQuery();
 	        
 	        if (results.next()) {
 	        	countryID = results.getString(1);
 	        }
     		//2) if  the State (prov) name doesn't exist insert it
-	        sql = "INSERT INTO Tbl_Prov (ProvName) SELECT * FROM (SELECT ?) AS tmp " + 
-				  "WHERE NOT EXISTS (SELECT ProvName FROM Tbl_Prov WHERE ProvName = ?) LIMIT 1;";
+	        sql = "IF NOT EXISTS (SELECT TOP 1 ProvID FROM Tbl_Prov WHERE ProvName = ?) " + 
+		          "INSERT INTO Tbl_Prov (ProvName) VALUES (?);";
 	        state = jdbcConnection.prepareStatement(sql);
     		state.setString(1, newAddress.GetState());
     		state.setString(2, newAddress.GetState());
@@ -309,7 +277,7 @@ public class ConnectDAO {
     		sql = "SELECT ProvID FROM Tbl_Prov WHERE ProvName = ? LIMIT 1;";
     		state = jdbcConnection.prepareStatement(sql);
     		state.setString(1, newAddress.GetState());
-    		results = state.executeQuery(sql);
+    		results = state.executeQuery();
 	        
 	        if (results.next()) {
 	        	provID = results.getString(1);
@@ -349,7 +317,7 @@ public class ConnectDAO {
     		PreparedStatement state = jdbcConnection.prepareStatement(sql);
     		state.setInt(1, userID);
     		
-	        ResultSet results = state.executeQuery(sql);
+	        ResultSet results = state.executeQuery();
 	        if (results.next()) {
 	        	// build the billing address
 	        	String companyName = results.getString("UserCompName");
@@ -370,7 +338,7 @@ public class ConnectDAO {
 	        		
 	        		PreparedStatement shipState = jdbcConnection.prepareStatement(shipSql);
 	        		shipState.setInt(1, userID);
-	    	        ResultSet shipResults = shipState.executeQuery(shipSql);
+	    	        ResultSet shipResults = shipState.executeQuery();
 	    	        
 	    	        if(shipResults.next()){
 	    	        	shipAddr = new Address(companyName,
@@ -411,7 +379,7 @@ public class ConnectDAO {
 			connect();
     		PreparedStatement state = jdbcConnection.prepareStatement(sql);
     		state.setString(1, uEmail);
-	        ResultSet results = state.executeQuery(sql);
+	        ResultSet results = state.executeQuery();
 	        
 	        if (results.next()) {
 	        	possibleUserID = results.getInt("UserID");
@@ -448,9 +416,9 @@ public class ConnectDAO {
 			
 			boolean rowUpdated = state.executeUpdate() > 0;
 			if(rowUpdated){
-				sql = "SELECT LAST_INSERT_ID();";
+				sql = "SELECT SCOPE_IDENTITY();";
 	    		state = jdbcConnection.prepareStatement(sql);
-	    		ResultSet results = state.executeQuery(sql);
+	    		ResultSet results = state.executeQuery();
 	    		if (results.next()) {
 	    			newBidID = results.getInt(1);
 		        }
@@ -471,7 +439,7 @@ public class ConnectDAO {
 			connect();
     		PreparedStatement state = jdbcConnection.prepareStatement(sql);
     		state.setInt(1, bidderID);
-	        ResultSet results = state.executeQuery(sql);
+	        ResultSet results = state.executeQuery();
 	        
 	        while (results.next()) {
 	        	// while we have new results, build the bid list
@@ -505,7 +473,7 @@ public class ConnectDAO {
 			connect();
     		PreparedStatement state = jdbcConnection.prepareStatement(sql);
     		state.setInt(1, sellerID);
-	        ResultSet results = state.executeQuery(sql);
+	        ResultSet results = state.executeQuery();
 	        
 	        while (results.next()) {
 	        	// while we have new results, build the bid list
@@ -595,9 +563,15 @@ public class ConnectDAO {
 			
 			boolean rowUpdated = state.executeUpdate() > 0;
 			if(rowUpdated){
-				sql = "SELECT LAST_INSERT_ID();";
+				sql = "SELECT ListID FROM Tbl_List WHERE List_TDate = ? AND ListBaseAmt = ? AND " + 
+					  "ListEDate = ? AND ListMinQTY = ? AND ListProdID = ?;";
 	    		state = jdbcConnection.prepareStatement(sql);
-	    		ResultSet results = state.executeQuery(sql);
+	    		state.setString(1, newList.GetTerminationDate());
+	    		state.setString(2, newList.GetBaseAmount());
+	    		state.setString(3, newList.GetEffictiveDate());
+	    		state.setInt(4, newList.GetMinAmmount());
+				state.setInt(5, newList.GetProdID());
+	    		ResultSet results = state.executeQuery();
 	    		if (results.next()) {
 	    			newListID = results.getInt(1);
 		        }
@@ -617,7 +591,7 @@ public class ConnectDAO {
     		String sql = "Select * FROM Tbl_List WHERE ListEDate <= GETDATE() AND GETDATE() <= List_TDate;";
 			connect();
     		PreparedStatement state = jdbcConnection.prepareStatement(sql);
-	        ResultSet results = state.executeQuery(sql);
+	        ResultSet results = state.executeQuery();
 	        
 	        while (results.next()) {
 	        	// while we have new results, build the bid list
@@ -656,7 +630,7 @@ public class ConnectDAO {
     		 
 			connect();
     		PreparedStatement state = jdbcConnection.prepareStatement(sql);
-	        ResultSet prodResults = state.executeQuery(sql);
+	        ResultSet prodResults = state.executeQuery();
 			
 			//TODO: figure out the nested/join statement that will return a list of Listings from 
 			// a single user ID
@@ -664,7 +638,7 @@ public class ConnectDAO {
 			
     		sql = "Select * FROM Tbl_List WHERE ...;";
     		state = jdbcConnection.prepareStatement(sql);
-	        ResultSet results = state.executeQuery(sql);
+	        ResultSet results = state.executeQuery();
 	        
 	        while (results.next()) {
 	        	// while we have new results, build the bid list
@@ -751,9 +725,9 @@ public class ConnectDAO {
 			
 			boolean rowUpdated = state.executeUpdate() > 0;
 			if(rowUpdated){
-				sql = "SELECT LAST_INSERT_ID();";
+				sql = "SELECT @@IDENTITY;";
 	    		state = jdbcConnection.prepareStatement(sql);
-	    		ResultSet results = state.executeQuery(sql);
+	    		ResultSet results = state.executeQuery();
 	    		if (results.next()) {
 	    			newItemID = results.getInt(1);
 		        }
@@ -776,7 +750,7 @@ public class ConnectDAO {
 
     		connect();
     		PreparedStatement state = jdbcConnection.prepareStatement(sql);
-	        ResultSet results = state.executeQuery(sql);
+	        ResultSet results = state.executeQuery();
 	        
 	        while (results.next()) {
 	        	// while we have new results, build the bid list
@@ -810,7 +784,7 @@ public class ConnectDAO {
     		connect();
     		PreparedStatement state = jdbcConnection.prepareStatement(sql);
     		state.setInt(1, userID);
-	        ResultSet results = state.executeQuery(sql);
+	        ResultSet results = state.executeQuery();
 	        
 	        while (results.next()) {
 	        	// while we have new results, build the bid list

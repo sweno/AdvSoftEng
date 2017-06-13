@@ -1,0 +1,71 @@
+.centerText {
+    text-align: center;
+}
+
+@mainFontColor: #9d9d9d;
+
+@-webkit-keyframes typing { from { width: 0; } }
+@-webkit-keyframes blink-caret { 50% { border-color: transparent; } }
+
+.animateText {
+	font: bold 12em monospace;
+    color: black;
+	border-right: 0.02em solid black;
+	width: calc(0.40em * 4); 
+	width: ch;
+	white-space: nowrap;
+	overflow: hidden;
+	-webkit-animation: typing 5s steps(4, end),blink-caret .5s step-end infinite alternate;
+}
+
+@media only screen 
+  and (min-device-width: 320px) 
+  and (max-device-width: 1024px) { 
+      .animateTextProp {
+          padding-top: 30px;
+      }
+      
+      .animateText {
+          font: bold 3em monospace;
+      }
+      
+      .customSetting {
+          align-content: center;
+          text-align: center;
+      }
+      
+      .box-model {
+          box-shadow: none;
+          border: none;
+          padding-bottom: 5px;
+      }
+}
+
+@media only screen 
+  and (min-device-width: 1025px)  {
+         .box-model {
+            border: 2px solid black;
+            border-radius: 5px;
+            box-shadow: 10px 10px 5px #888888;
+            height: 130px;
+        }
+}
+
+.styleAnchor {
+    color: @mainFontColor;
+    text-decoration: none;
+    &:active {
+        color:@mainFontColor;
+    }
+    &:hover {
+        color:white;
+    }
+}
+
+.footerStyle {
+    background-color: #222;
+    padding: 5px;
+    color: @mainFontColor;
+    border-top-left-radius: 7px;
+    border-top-right-radius: 7px;
+}

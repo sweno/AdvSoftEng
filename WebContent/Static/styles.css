@@ -1,0 +1,93 @@
+
+#myNavbar>ul>li:hover{
+
+    font-size: 20px;
+    transform: scale($zoom);
+    transition: .3s;
+   
+}
+.centerText {
+  text-align: center;
+}
+@-webkit-keyframes typing {
+  from {
+    width: 0;
+  }
+}
+@-webkit-keyframes blink-caret {
+  50% {
+    border-color: transparent;
+  }
+}
+.animateText {
+  font: bold 10em monospace;
+  color: black;
+  border-right: 0.02em solid black;
+  width: calc(1.6em);
+  width: 4ch;
+  white-space: nowrap;
+  overflow: hidden;
+    text-shadow: 5px 3px lightgray;
+  -webkit-animation: typing 5s steps(15, end),/*blink-caret 0.3s*/ step-end infinite alternate;
+   
+    
+}
+@media only screen and (min-device-width: 320px) and (max-device-width: 1024px) {
+
+  .animateTextProp {
+    padding-top: 20px;
+  }
+  .animateText {
+    font: bold 1em monospace;
+  }
+  .customSetting {
+    align-content: center;
+    text-align: center;
+  }
+  .box-model {
+    box-shadow: none;
+    border: none;
+    padding-bottom: 5px;
+  }
+}
+@media only screen and (min-device-width: 1025px) {
+  .box-model {
+    border: 2px solid black;
+    border-radius: 5px;
+    box-shadow: 10px 10px 5px #888888;
+    height: 130px;
+  }
+}
+.styleAnchor {
+  color: #9d9d9d;
+  text-decoration: none;
+}
+.styleAnchor:active {
+  color: #9d9d9d;
+}
+.styleAnchor:hover {
+  color: white;
+}
+.footerStyle {
+  background-color: #222;
+  padding: 5px;
+  color: #9d9d9d;
+  border-top-left-radius: 7px;
+  border-top-right-radius: 7px;
+}
+
+/*********************/
+#nav_class{
+    border-radius: 0 0 5px 5px;
+}
+
+#contactus{
+    background-image: url(map_1.jpg);
+}
+
+#Contactus_form{
+    background-color: black;
+    opacity: 0.7;
+    color: white;
+     border-radius: 5px 5px 5px 5px;
+}
