@@ -7,9 +7,8 @@
 </head>
 <body>
     <h1>Thanks for signing up!</h1>
-    <h2>You provided the following data:</h2>
     <p><strong>Name:</strong> ${name}</p>
     <p><strong>Email: </strong>${email}</p>
-    <p><strong>Password:</strong> ${password}</p>
+    <p>please <a href="${pageContext.request.contextPath}/Index.jsp">login</a></p>
 </body>
 </html>

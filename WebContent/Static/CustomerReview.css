@@ -1,0 +1,32 @@
+.review{
+    background-origin: content-box;
+    margin: 5% 0 5% 0;
+}
+.carousel-control.right, .carousel-control.left {
+    background-image:none;
+     background-color: none;
+    color: lightgrey;
+     opacity: 0.9;
+     
+}
+
+.carousel-indicators li {
+    border-color: lightgray;
+}
+
+.carousel-indicators li.active {
+    background-color: lightgray;
+}
+
+.item h4 {
+    font-size: 19px;
+    line-height: 1.375em;
+    font-weight: 400;
+    font-style: italic;
+    margin: 70px 0;
+    float: inherit;
+}
+
+.item span {
+    font-style:italic;
+}

@@ -39,6 +39,13 @@
           border: none;
           padding-bottom: 5px;
       }
+       .smallScreenOnly {
+          display: none;
+      }
+      
+      .dashboard {
+          display: block;
+      }
 }
 
 @media only screen 
@@ -49,6 +56,13 @@
             box-shadow: 10px 10px 5px #888888;
             height: 130px;
         }
+      smallScreenOnly {
+          display: none;
+      }
+      
+      .dashboard {
+          display: block;
+      }
 }
 
 .styleAnchor {
@@ -68,4 +82,100 @@
     color: @mainFontColor;
     border-top-left-radius: 7px;
     border-top-right-radius: 7px;
+    margin-top: 20px;
+}
+
+a.noStyle {
+    color: white;
+    &:hover {
+        color: white;
+    }
+}
+
+.mainBox {
+    margin-top: 80px;
+    margin-bottom: 40px;
+    border: 3px solid black;
+    border-radius: 5px;
+   /* width: 100%;
+    padding: 5px;*/s
+}
+
+.mainDashHead {
+    border: 2px solid black;
+    border-radius: 2px;
+    background-color: black;
+    margin-bottom: 10px;
+    a {
+        font-size: 24px;
+        color: white;
+        font-weight: bold;
+        text-decoration: none;
+    }
+}
+
+.mainDashHeadDesk {
+    padding-top: 40px;
+    a {
+        font-size: 24px;
+        color: white;
+        font-weight: bold;
+        text-decoration: none;
+    }
+}
+
+.mainDashHeadOptions {
+    border: 2px solid black;
+    border-radius: 2px;
+    margin-bottom: 5px;
+    height: 35px;
+    a {
+        font-size: 20px;
+        padding-top: 10px;
+        color: black;
+        font-weight: bold;
+        text-decoration: none;
+    }
+}
+
+.dashboard {
+    width: 300px;
+    height: 86vh;
+    background-color: black;
+}
+/**********/
+mainDashHeadDesk:hover {
+    background-color: white;
+}
+
+mainDashHeadOptionsDesk:hover{
+    background-color: white;
+}
+/**********/
+.col-md-3 {
+    margin-left: 1px;
+    margin-top: 65px;
+    margin-bottom: 10px;
+}
+
+.mainDashHeadOptionsDesk {
+    margin-top: 10px;
+    a {
+        font-size: 18px;
+        padding-top: 10px;
+        color: white;
+        font-weight: bold;
+        text-decoration: none;
+    }
+}
+
+.inactive a {
+    color: black;
+    cursor: default;
+    background-color: white;
+     border-radius: 3px 3px 3px 3px;
+}
+
+.content {
+    margin-top: 65px;
 }

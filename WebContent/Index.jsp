@@ -1,25 +1,5 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8"
     pageEncoding="UTF-8"%>
-<!--<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
-<html>
-<head>
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<title>Welcome page</title>
-</head>
-<body>
-<p>this is the basic welcome/login page</p>
-<p><a href="${pageContext.request.contextPath}/newUser.jsp">click here</a> to create an account</p>
-<form action="${pageContext.request.contextPath}/loginSV" method="post">
-        <label for="email">Email: </label>
-        <input type="text" name="email" id="email" value=""><br>
-        <label for="password">Password:</label>
-        <input type="text" name="password" id="password" value=""><br>
-        <input type="submit" name="login" value="log in">
-    </form>
-</body>
-</html>-->
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -74,18 +54,18 @@
             <div class="tab-content">
                     <div id="prog" class="tab-pane fade in active">
                         <center><h4>Sign In</h4></center>
-                <form role="form" action="${pageContext.request.contextPath}/loginSV" method="post" name="thisform" class="ng-pristine ng-invalid ng-invalid-required ng-valid-maxlength">
+                <form role="form" action="${pageContext.request.contextPath}/login" method="post" name="thisform" class="ng-pristine ng-invalid ng-invalid-required ng-valid-maxlength">
                     <div class="form-group">
                         <label>Email ID</label>
-                        <input type="email" name="pass" placeholder="dharitParmar@gmail.com" class="form-control" required="">
+                        <input type="email" name="email" placeholder="dharitParmar@gmail.com" class="form-control" required="">
                     </div>
 
                     <div class="form-group">
                         <label>Password</label>
-                        <input type="password" name="repass" placeholder="Passw0rd" class="form-control" required="">
+                        <input type="password" name="password" placeholder="Passw0rd" class="form-control" required="">
                     </div>
                             
-                    <center><input type="submit" value="Login" class="btn btn-default btnfrm" onclick="processor()"></center> <br>
+                    <center><input type="submit" value="Login" class="btn btn-default btnfrm""></center> <br>
                     <center><p id="contact"></p></center>
                 </form>  
                     </div>

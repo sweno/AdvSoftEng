@@ -1,4 +1,6 @@
-
+#myNavbar>ul<li{
+    color: white;
+}
 #myNavbar>ul>li:hover{
 
     font-size: 20px;
@@ -49,6 +51,12 @@
     border: none;
     padding-bottom: 5px;
   }
+    .smallScreenOnly {
+    display: none;
+  }
+  .dashboard {
+    display: block;
+  }
 }
 @media only screen and (min-device-width: 1025px) {
   .box-model {
@@ -74,6 +82,95 @@
   color: #9d9d9d;
   border-top-left-radius: 7px;
   border-top-right-radius: 7px;
+    margin-top: 20px;
+}
+a.noStyle {
+  color: white;
+}
+a.noStyle:hover {
+  color: white;
+}
+.mainBox {
+  margin-top: 80px;
+  margin-bottom: 40px;
+  border: 3px solid black;
+  border-radius: 5px;
+  width: 100%;
+  padding: 5px;
+}
+.mainDashHead {
+  border: 2px solid black;
+  border-radius: 2px;
+  background-color: black;
+  margin-bottom: 10px;
+}
+.mainDashHead a {
+  font-size: 24px;
+  color: white;
+  font-weight: bold;
+  text-decoration: none;
+}
+.mainDashHeadDesk {
+  padding-top: 40px;
+}
+.mainDashHeadDesk a {
+  font-size: 24px;
+  color: white;
+  font-weight: bold;
+  text-decoration: none;
+}
+.mainDashHeadOptions {
+  border: 2px solid black;
+  border-radius: 2px;
+  margin-bottom: 5px;
+  height: 35px;
+}
+.mainDashHeadOptions a {
+  font-size: 20px;
+  padding-top: 10px;
+  color: black;
+  font-weight: bold;
+  text-decoration: none;
+}
+.dashboard {
+  width: 300px;
+  height: 86vh;
+  background-color: black;
+    border-radius: 5px 5px 5px 5px;
+
+}
+/**********/
+mainDashHeadDesk:hover {
+    background-color: white;
+}
+
+mainDashHeadOptionsDesk:hover{
+    background-color: white;
+}
+/********/
+.col-md-3 {
+  margin-left: 1px;
+  margin-top: 65px;
+  margin-bottom: 10px;
+}
+.mainDashHeadOptionsDesk {
+  margin-top: 10px;
+}
+.mainDashHeadOptionsDesk a {
+  font-size: 18px;
+  padding-top: 10px;
+  color: white;
+  font-weight: bold;
+  text-decoration: none;
+}
+.inactive a {
+  color: black;
+  cursor: default;
+    background-color: white;
+    border-radius: 3px 3px 3px 3px;
+}
+.content {
+  margin-top: 65px;
 }
 
 /*********************/
@@ -90,4 +187,40 @@
     opacity: 0.7;
     color: white;
      border-radius: 5px 5px 5px 5px;
+}
+
+/*********************/
+#nav_class{
+    border-radius: 0 0 5px 5px;
+}
+
+#contactus{
+    background-image: url(map_1.jpg);
+}
+
+#Contactus_form{
+    background-color: black;
+    opacity: 0.7;
+    color: white;
+     border-radius: 5px 5px 5px 5px;
+}
+/***** css added by terry to make tables more readable *****/
+.display_table{
+	color: #333; /* Lighten up font color */
+    font-family: Helvetica, Arial, sans-serif; /* Nicer font */
+    width: 640px; 
+    border-collapse: 
+    collapse; border-spacing: 0; 
+}
+
+.display_table th { 
+	border: 1px solid #CCC;
+    background: #F3F3F3; /* Light grey background */
+    font-weight: bold; /* Make sure they're bold */
+}
+
+.display_table td {  
+	border: 1px solid #CCC;
+    background: #FAFAFA; /* Lighter grey background */
+    text-align: center; /* Center our text */
 }

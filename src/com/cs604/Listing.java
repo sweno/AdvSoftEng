@@ -3,89 +3,100 @@ package com.cs604;
 public class Listing {
 	private int list_id;
 	private int prod_id;
-	private String base_amount;
+	private String prod_name;
+	private double base_cost;
 	private int min_ammount;
 	private String list_date;
-	private String effictive_date;
+	private String effective_date;
 	private String termination_date;
 
 	public Listing(){
 	}
 	
-	public Listing(int listID, int prodID, String baseAmount, int minAmount, String listDate, String effDate, String termDate){
+	public Listing(int listID, int prodID, String prodName, double baseAmount, int minAmount, String listDate, String effDate, String termDate){
 		// constructor for when we are pulling things off the database
 		list_id = listID;
 		prod_id = prodID;
-		base_amount = baseAmount;
+		prod_name = prodName;
+		base_cost = baseAmount;
 		min_ammount = minAmount;
 		list_date = listDate;
-		effictive_date = effDate;
+		effective_date = effDate;
 		termination_date = termDate;
 	}
 	
-	public Listing(int prodID, String baseAmount, int minAmount, String listDate, String effDate, String termDate){
+	public Listing(int prodID, String prodName, double baseAmount, int minAmount, String listDate, String effDate, String termDate){
 		// constructor for when we don't know the list_id
 		prod_id = prodID;
-		base_amount = baseAmount;
+		prod_name = prodName;
+		base_cost = baseAmount;
 		min_ammount = minAmount;
 		list_date = listDate;
-		effictive_date = effDate;
+		effective_date = effDate;
 		termination_date = termDate;
 	}
 
-	public int GetListID() {
+	public int getListID() {
 		return list_id;
 	}
 
-	public void SetListID(int list_id) {
+	public void setListID(int list_id) {
 		this.list_id = list_id;
 	}
 
-	public int GetProdID() {
+	public int getProdID() {
 		return prod_id;
 	}
 
-	public void SetProdID(int prod_id) {
+	public void setProdID(int prod_id) {
 		this.prod_id = prod_id;
 	}
 
-	public String GetBaseAmount() {
-		return base_amount;
+	public String getProdName() {
+		return prod_name;
 	}
 
-	public void SetBaseAmount(String base_amount) {
-		this.base_amount = base_amount;
+	public void setProdName(String prod_name) {
+		this.prod_name = prod_name;
 	}
 
-	public int GetMinAmmount() {
+	public double getBaseCost() {
+		return base_cost;
+	}
+
+	public void setBaseCost(double base_amount) {
+		this.base_cost = base_amount;
+	}
+
+	public int getMinAmount() {
 		return min_ammount;
 	}
 
-	public void SetMinAmmount(int min_ammount) {
+	public void setMinAmount(int min_ammount) {
 		this.min_ammount = min_ammount;
 	}
 
-	public String GetListDate() {
+	public String getListDate() {
 		return list_date;
 	}
 
-	public void SetListDate(String list_date) {
+	public void setListDate(String list_date) {
 		this.list_date = list_date;
 	}
 
-	public String GetEffictiveDate() {
-		return effictive_date;
+	public String getEffectiveDate() {
+		return effective_date;
 	}
 
-	public void SetEffictivDate(String effictive_date) {
-		this.effictive_date = effictive_date;
+	public void setEffectiveDate(String effictive_date) {
+		this.effective_date = effictive_date;
 	}
 
-	public String GetTerminationDate() {
+	public String getTerminationDate() {
 		return termination_date;
 	}
 
-	public void SetTerminationDate(String termination_date) {
+	public void setTerminationDate(String termination_date) {
 		this.termination_date = termination_date;
 	}
 

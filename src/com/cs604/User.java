@@ -1,7 +1,7 @@
 package com.cs604;
 
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
+import org.apache.commons.codec.digest.*;
+import org.apache.commons.lang3.StringUtils;
 
 public class User{
 	private int user_id;
@@ -13,7 +13,6 @@ public class User{
 	private boolean buyer_flag;
 	private boolean seller_flag;
 	private boolean shipping_is_billing;
-	private MessageDigest mdSHA256;
 	
 	public User(){
 	}
@@ -21,12 +20,6 @@ public class User{
 	public User(String uName, String uEmail, String uPassword, Address bAddr, Address sAddr, boolean buyer, boolean seller, boolean SisB){
 		name = uName;
 		email = uEmail;
-		// init the message digest
-		try{
-			mdSHA256 = MessageDigest.getInstance("SHA-256");
-		}catch(NoSuchAlgorithmException e){
-			System.err.println("No SHA256 Message Digest: " + e.getMessage());
-		}
 		password_hash = passwordHash(uPassword);
 		billing_address = bAddr;
 		shipping_address = sAddr;
@@ -40,12 +33,6 @@ public class User{
 		user_id = uID;
 		name = uName;
 		email = uEmail;
-		// init the message digest
-		try{
-			mdSHA256 = MessageDigest.getInstance("SHA-256");
-		}catch(NoSuchAlgorithmException e){
-			System.err.println("No SHA256 Message Digest: " + e.getMessage());
-		}
 		password_hash = uPHash;
 		billing_address = bAddr;
 		shipping_address = sAddr;
@@ -54,39 +41,35 @@ public class User{
 		shipping_is_billing = SisB;
 	}
 	
-	public int GetID(){
+	public int getID(){
 		return user_id;
 	}
 	
-	public void SetID(int uID){
+	public void setID(int uID){
 		user_id = uID;
 	}
 	
-	public String GetName(){
+	public String getName(){
 		return name;
 	}
 	
-	public void SetName(String uName){
+	public void setName(String uName){
 		name = uName;
 	}
 	
-	public String GetEmail(){
+	public String getEmail(){
 		return email;
 	}
 	
-	public void SetEmail(String uEmail){
+	public void setEmail(String uEmail){
 		email = uEmail;
 	}
 	
 	public Boolean CheckPasswordHash(String uPassword){
-		if (password_hash.equals(passwordHash(uPassword))){
-			return true;
-		}else{
-			return false;
-		}
+		return password_hash.equals(passwordHash(uPassword));
 	}
 	
-	public Boolean SetNewPasswordHash(String uPassword, String newPassword){
+	public Boolean setNewPasswordHash(String uPassword, String newPassword){
 		if(password_hash.equals(passwordHash(uPassword))){
 			//passwords match, set new password_hash
 			password_hash = passwordHash(newPassword);
@@ -96,67 +79,68 @@ public class User{
 		}
 	}
 	
-	protected String GetPasswordHash(){
+	protected String getPasswordHash(){
 		return password_hash;
 	}
 	
-	public Address GetBillingAddress(){
+	public Address getBillingAddress(){
 		return billing_address;
 	}
 	
-	public void SetBillingAddress(Address uBillAddr){
+	public void setBillingAddress(Address uBillAddr){
 		billing_address = uBillAddr;
 	}
 	
-	public Address GetShippingAddress(){
+	public Address getShippingAddress(){
 		return shipping_address;
 	}
 	
-	public void SetShippingAddress(Address uShipAddr){
+	public void setShippingAddress(Address uShipAddr){
 		shipping_address = uShipAddr;
 	}
 	
-	public Boolean GetBuyerFlag(){
+	public Boolean getBuyerFlag(){
 		return buyer_flag;
 	}
 	
-	public void SetBuyerFlag(Boolean bFlag){
+	public void setBuyerFlag(Boolean bFlag){
 		buyer_flag = bFlag;
 	}
 	
-	public Boolean GetSellerFlag(){
+	public Boolean getSellerFlag(){
 		return seller_flag;
 	}
 	
-	public void SetSellerFlag(Boolean sFlag){
+	public void setSellerFlag(Boolean sFlag){
 		seller_flag = sFlag;
 	}
-	
-	public void Login(String username){
-		// push a temporary id to the browser cookie store
-	}
-	
-	public void Logout(String username){
-		// remove the temporary id from the browser cookie store
-	}
-	
-	public boolean GetShippingIsBilling() {
+		
+	public boolean getShippingIsBilling() {
 		return shipping_is_billing;
 	}
 
-	public void SetShippingIsBilling(boolean shipping_is_billing) {
+	public void setShippingIsBilling(boolean shipping_is_billing) {
 		this.shipping_is_billing = shipping_is_billing;
 	}
 	
 	private String passwordHash(String uPassword){
-		//clear the digest (we shouldn't care what was in there before)
-		mdSHA256.reset();
-		//add the content to the digest
-		mdSHA256.update(uPassword.getBytes());
-		// calculate resutls
-//		String results = new String(mdSHA256.digest());
-//		return results;
-		return new String(mdSHA256.digest());
+		if(StringUtils.isEmpty(password_hash)){
+			return Sha2Crypt.sha256Crypt(uPassword.getBytes());
+		}else{
+			return Sha2Crypt.sha256Crypt(uPassword.getBytes(), password_hash);
+		}
+	}
+	
+	protected void debugUser(){
+		String debug = "User debug info ::";
+		debug += "\nuserID: " + user_id;
+		debug += "\nname: " + name;
+		debug += "\nemail: " + email;
+		debug += "\npass: " + password_hash;
+		debug += "\nbuyer: " + buyer_flag;
+		debug += "\nseller: " + seller_flag;
+		debug += "\nship=bill: " + shipping_is_billing;
+		System.out.println(debug);
 	}
 
 }

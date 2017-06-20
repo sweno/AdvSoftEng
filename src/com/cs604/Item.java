@@ -1,73 +1,87 @@
 package com.cs604;
 
 public class Item {
-	private int item_id_num;
-	private int seller_id_num;
+	private int itemID;
+	private int sellerID;
 	private String name;
 	private String description;
 	private String keywords;
-	private int quantity_in_stock;
-	private String submit_date;
+	private int quantityInStock;
+	private String submitDate;
 	
 	public Item(){
 	}
 	
 	public Item(int itemID, int sellerID, String iName, String iDesc, String iKeywords, int quant, String subDate){
-		item_id_num = itemID;
-		seller_id_num = sellerID;
-		name = iName;
-		description = iDesc;
-		keywords = iKeywords;
-		quantity_in_stock = quant;
-		submit_date = subDate;
+		this.itemID = itemID;
+		this.sellerID = sellerID;
+		this.name = iName;
+		this.description = iDesc;
+		this.keywords = iKeywords;
+		this.quantityInStock = quant;
+		this.submitDate = subDate;
+	}
+
+	public Item(int sellerID, String iName, String iDesc, String iKeywords, int quant){
+		// create an item where we don't know it's ID already
+		this.itemID = 0;
+		this.sellerID = sellerID;
+		this.name = iName;
+		this.description = iDesc;
+		this.keywords = iKeywords;
+		this.quantityInStock = quant;
 	}
 	
-	public int GetItemID(){
-		return item_id_num;
+	public int getItemID(){
+		return itemID;
 	}
 	
-	public int GetSellerID(){
-		return seller_id_num;
+	protected void setItemID(int itemID){
+		this.itemID = itemID;
 	}
 	
-	public String GetName(){
+	public int getSellerID(){
+		return sellerID;
+	}
+	
+	public String getName(){
 		return name;
 	}
 	
-	public void SetName(String newName){
+	public void setName(String newName){
 		name = newName;
 	}
 	
-	public String GetDescription(){
+	public String getDescription(){
 		return description;
 	}
 	
-	public void SetDescription(String newDesc){
+	public void setDescription(String newDesc){
 		description = newDesc;
 	}
 	
-	public String GetKeywords(){
+	public String getKeywords(){
 		return keywords;
 	}
 	
-	public void SetKeywords(String newKeywords){
+	public void setKeywords(String newKeywords){
 		keywords = newKeywords;
 	}
 	
-	public int GetQuantityInStock(){
-		return quantity_in_stock;
+	public int getQuantityInStock(){
+		return quantityInStock;
 	}
 	
-	public void SetQuantityInStock(int newQuant){
-		quantity_in_stock = newQuant;
+	public void setQuantityInStock(int newQuant){
+		quantityInStock = newQuant;
 	}
 	
-	public String GetSubmitDate() {
-		return submit_date;
+	public String getSubmitDate() {
+		return submitDate;
 	}
 
-	public void SetSubmitDate(String submit_date) {
-		this.submit_date = submit_date;
+	public void setSubmitDate(String submit_date) {
+		this.submitDate = submit_date;
 	}
 
 }

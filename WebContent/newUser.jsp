@@ -5,23 +5,25 @@
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<title>User Sign Up</title>
+<title>New User Sign Up</title>
 </head>
 <body>
-    <h1>User Sign Up</h1>
+    <h1>New User Sign Up</h1>
 
     <c:if test="${problems != null}">
+    	<div>
         <c:forEach items="${problems}" var="problem">
-            <p>${problem}.</p>
+            ${problem}<br/>
         </c:forEach>
+        </div>
     </c:if>
-
+	<p>Please fill in the remaining data to complete user registration.</p>
 <form action="${pageContext.request.contextPath}/newUser" method="post">
-        <label for="name">Company Name : </label> <input type="text" name="name" id="name" value=""><br>
-        <label for="email">Email: </label> <input type="text" name="email" id="email" value=""><br>
-        <label for="password">Password:</label> <input type="password" name="password" id="password" value=""><br>
-        <label for="Buyer">I will be buying: </label> <input type="checkbox" name="Buyer" id="Buyer" value="">
-        <label for="Seller">I will be selling: </label> <input type="checkbox" name="Seller" id="Seller" value=""><br>
+        <label for="name">Company Name : </label> <input type="text" name="name" id="name" value="<%= request.getParameter("name") %>"><br>
+        <label for="email">Email: </label> <input type="text" name="email" id="email" value="<%= request.getParameter("email") %>"><br>
+        <label for="password">Password:</label> <input type="password" name="password" id="password" value="<%= request.getParameter("pass") %>"><br>
+        <label for="Buyer">I will be buying: </label> <input type="checkbox" name="Buyer" id="Buyer">
+        <label for="Seller">I will be selling: </label> <input type="checkbox" name="Seller" id="Seller"><br>
         Billing Address:<br>
         <label for="Bill_Street1">Street: </label> <input type="text" name="Bill_Street1" id="Bill_Street1" value=""><br>
         <label for="Bill_Street2">Street: </label> <input type="text" name="Bill_Street2" id="Bill_Street2" value=""><br>

@@ -1,0 +1,8 @@
+<footer class="row-footer">
+	<div class="container footerStyle">
+		<div class="row row-content">
+			<div class="customSetting col-md-4">Copyright © 2017 GuTO Inc. All rights reserved.</div>
+            <div class="customSetting col-md-2 col-md-offset-6"><a href="#" class="styleAnchor">Terms and Conditions</a></div>
+        </div>
+	</div>
+</footer>

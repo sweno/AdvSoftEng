@@ -11,36 +11,22 @@ import javax.servlet.ServletResponse;
 import javax.servlet.annotation.WebFilter;
 
 /**
- * Servlet Filter implementation class StaticFilter
+ * static filter to pass along static content like images and css
  */
 @WebFilter("/StaticFilter")
 public class StaticFilter implements Filter {
 	private RequestDispatcher defaultRequestDispatcher;  
 
-    /**
-     * Default constructor. 
-     */
     public StaticFilter() {
-        // TODO Auto-generated constructor stub
     }
 
-	/**
-	 * @see Filter#destroy()
-	 */
 	public void destroy() {
-		// TODO Auto-generated method stub
 	}
 
-	/**
-	 * @see Filter#doFilter(ServletRequest, ServletResponse, FilterChain)
-	 */
 	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
 		defaultRequestDispatcher.forward(request, response);
 		}
 
-	/**
-	 * @see Filter#init(FilterConfig)
-	 */
 	public void init(FilterConfig fConfig) throws ServletException {
 		this.defaultRequestDispatcher = fConfig.getServletContext().getNamedDispatcher("default");
 		}

@@ -22,59 +22,64 @@ public class Address{
 		country = cntry;
 	}
 	
-	public String GetFullName(){
+	public String getFullName(){
 		return full_name;
 	}
 	
-	public void SetFullName(String fName){
+	public void setFullName(String fName){
 		full_name = fName;
 	}
 	
-	public String GetStreet1(){
+	public String getStreet1(){
 		return street_1;
 	}
 	
-	public void SetStreet1(String s1){
+	public void setStreet1(String s1){
 		street_1 = s1;
 	}
 	
-	public String GetStreet2(){
+	public String getStreet2(){
 		return street_2;
 	}
 	
-	public void SetStreet2(String s2){
+	public void setStreet2(String s2){
 		street_2 = s2;
 	}
 	
-	public String GetCity(){
+	public String getCity(){
 		return city;
 	}
 	
-	public void SetCity(String cty){
+	public void setCity(String cty){
 		city = cty;
 	}
 	
-	public String GetState(){
+	public String getState(){
 		return state;
 	}
 	
-	public void SetState(String st){
+	public void setState(String st){
 		state = st;
 	}
 	
-	public String GetZip(){
+	public String getZip(){
 		return zip;
 	}
 	
-	public void SetZip(String zp){
+	public void setZip(String zp){
 		zip = zp;
 	}
 	
-	public String GetCountry(){
+	public String getCountry(){
 		return country;
 	}
 	
-	public void SetCountry(String cntry){
+	public void setCountry(String cntry){
 		country = cntry;
 	}
+	
+	public String asString(){
+		return full_name + "\n" + street_1 + "\n" + street_2  + "\n" + city + ", " + state +" "+zip+"\n"+country;
+	}
+	
 }
