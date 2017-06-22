@@ -61,9 +61,6 @@ public class ProdController extends HttpServlet {
         }
 	}
 
-	/**
-	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
-	 */
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		String action = request.getServletPath();
 		
@@ -74,6 +71,7 @@ public class ProdController extends HttpServlet {
         	int userID = connectDB.getUserID((String)currentSession.getAttribute("Email"));
         	// if a user is logged in, default should be their landing page
         	switch(action){
+        		case "/productList": productList(request, response, userID); break;
     			case "/newProduct": newProduct(request, response, userID); break;
     			case "/editProduct": editProductPre(request, response, userID); break;
     			case "/editProduct2": editProductPost(request, response, userID); break;
@@ -86,7 +84,7 @@ public class ProdController extends HttpServlet {
         }
 	}
 	
-	private void productList(HttpServletRequest request, HttpServletResponse response, int userID) throws ServletException, IOException, NumberFormatException {
+	private void productList(HttpServletRequest request, HttpServletResponse response, int userID) throws ServletException, IOException {
 //    	System.out.println("productList started");
     	request.setAttribute("sellerItemList", connectDB.listProductsForUser(userID));
     	request.getRequestDispatcher("productlist.jsp").forward(request, response);
@@ -120,7 +118,7 @@ public class ProdController extends HttpServlet {
 		
 		if(problems.isEmpty()){
 //	    	System.out.println("newProduct success, going to dashboard");
-			request.getRequestDispatcher("/dashboard").forward(request, response);
+			request.getRequestDispatcher("/productList").forward(request, response);
 		}else{
 //	    	System.out.println("newProduct failure, reloading page");
 			request.getRequestDispatcher("product.jsp").forward(request, response);
@@ -156,7 +154,7 @@ public class ProdController extends HttpServlet {
 			request.getRequestDispatcher("product.jsp").forward(request, response);
 		}else{
 //	    	System.out.println("editProductPre failed, going to dashboard");
-			request.getRequestDispatcher("/dashboard").forward(request, response);
+			request.getRequestDispatcher("/productList").forward(request, response);
 		}
 	}
 	
@@ -192,7 +190,7 @@ public class ProdController extends HttpServlet {
 		
 		if(problems.isEmpty()){
 //	    	System.out.println("editProductPost success, going to dashboard");
-			request.getRequestDispatcher("/dashboard").forward(request, response);
+			request.getRequestDispatcher("/productList").forward(request, response);
 		}else{
 //	    	System.out.println("editProductPost failed, going to reload");
 			request.getRequestDispatcher("product.jsp").forward(request, response);
@@ -215,8 +213,16 @@ public class ProdController extends HttpServlet {
 				problems.add("no such product for user");
 				request.setAttribute("problems", problems);
 			}else{
-				// we have a valid item, kill it
-				if(!connectDB.deleteProduct(itemNum)){
+				// we have a valid item, test for dependencies
+				List<Listing> userLists = connectDB.listAllUserListing(userID);
+				boolean conflict = false;
+				for(Listing myList : userLists){
+					if(myList.getProdID() == itemNum) conflict = true;
+				}
+				if(conflict){
+					problems.add("Product has listings dependent on it, please remove them and their bids first");
+					request.setAttribute("problems", problems);
+				}else if(!connectDB.deleteProduct(itemNum)){ //kill it
 					problems.add("error connecting to database");
 					request.setAttribute("problems", problems);
 				}
@@ -228,12 +234,12 @@ public class ProdController extends HttpServlet {
 		
 		// doesn't matter if there was an error, they are going to the same place
 //    	System.out.println("deleteProduct finished, going to dashboard");
-		request.getRequestDispatcher("/dashboard").forward(request, response);
+		request.getRequestDispatcher("/productList").forward(request, response);
 		
 	}
 	
 	private void bounceToDashboard(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		request.getRequestDispatcher("/dashboard").forward(request, response);
+		request.getRequestDispatcher("/myAccount").forward(request, response);
 	}
 
 
@@ -272,7 +278,10 @@ public class ProdController extends HttpServlet {
 			String session_email = (String)currentSession.getAttribute("Email");
 			String session_date = (String)currentSession.getAttribute("Date");
 			String session_hash = (String)currentSession.getAttribute("Hash");
-		    if(!session_email.isEmpty() && !session_date.isEmpty() && !session_hash.isEmpty() && checkLoginHash(session_email, session_date, session_hash)){
+		    if(session_email != null && !session_email.isEmpty() && 
+		    	session_date != null &&!session_date.isEmpty() && 
+		    	session_hash != null && !session_hash.isEmpty() && 
+		    	checkLoginHash(session_email, session_date, session_hash)){
 		    	return true;
 		    }
 		}

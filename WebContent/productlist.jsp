@@ -11,8 +11,8 @@
         <div class="content col-md-5 col-md-offset-2">
             <c:if test="${problems != null}"><c:forEach items="${problems}" var="problem"><p>${problem}.</p></c:forEach></c:if>
             
-			<div>Products on File:<br/>
-				<table class="display_table" border="0" cellpadding="5">
+			<div><h1>Products on File:</h1><br/>
+				<table class="display_table">
 					<tr>
 						<th>Name</th>
 						<th>Description</th>
@@ -29,15 +29,15 @@
 							<td>
 							<form action="${pageContext.request.contextPath}/newListing" method="post">
 								<input type="hidden" name="id" value="<c:out value='${item.getItemID()}'/>"/>
-								<input type="submit" name="CreateListing" value="Create Listing">
+								<input type="submit" class="btn btn-primary" name="CreateListing" value="Create Listing">
 							</form>
 							<form action="${pageContext.request.contextPath}/editProduct" method="post">
 								<input type="hidden" name="id" value="<c:out value='${item.getItemID()}'/>"/>
-								<input type="submit" name="Edit" value="Edit">
+								<input type="submit" class="btn btn-warning" name="Edit" value="Edit">
 							</form>
 							<form action="${pageContext.request.contextPath}/deleteProduct" method="post">
 								<input type="hidden" name="id" value="<c:out value='${item.getItemID()}'/>"/>
-								<input type="submit" name="Delete" value="Delete">
+								<input type="submit" class="btn btn-danger" name="Delete" value="Delete">
 							</form>
 							</td>
 						</tr>

@@ -20,7 +20,7 @@ import com.cs604.validators.StringValidator;
  * Servlet implementation class BidController
  */
 @WebServlet(description = "handles biding actions", 
-			urlPatterns = {"/accpetBid", "/rejectBid", "/newBid", "/newBid2", "/editBid", "/editBid2", "/deleteBid"})
+			urlPatterns = {"/currentBids", "/accpetBid", "/rejectBid", "/newBid", "/newBid2", "/editBid", "/editBid2", "/deleteBid"})
 public class BidController extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 	private ConnectDAO connectDB;
@@ -50,8 +50,24 @@ public class BidController extends HttpServlet {
 	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
 	 */
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		// TODO Auto-generated method stub
-		response.getWriter().append("Served at: ").append(request.getContextPath());
+		String action = request.getServletPath();
+		
+		//every item here should be logged in before accessing, so we can check for login right now
+		HttpSession currentSession = request.getSession(false);
+        if(validateLogin(currentSession)){
+        	// pull the userID for a valid email address
+        	int userID = connectDB.getUserID((String)currentSession.getAttribute("Email"));
+        	// all pages reference user information, so save that as part of the request
+    		request.setAttribute("user", connectDB.getUser(userID));
+        	// if a user is logged in, default should be their landing page
+        	switch(action){
+        		case "/currentBids": bidList(request, response, userID); break;
+	        	default: bounceToDashboard(request, response); break;
+        	}
+        }else{
+        	// session info null, bounce to login
+    		request.getRequestDispatcher("Index.jsp").forward(request, response);
+        }
 	}
 
 	/**
@@ -62,33 +78,33 @@ public class BidController extends HttpServlet {
 		
 		//every item here should be logged in before accessing, so we can check for login right now
 		HttpSession currentSession = request.getSession(false);
-        if(currentSession!=null){
-        	// a session exists
-        	String session_email = (String)currentSession.getAttribute("Email");
-        	String session_date = (String)currentSession.getAttribute("Date");
-        	String session_hash = (String)currentSession.getAttribute("Hash");
-        	if(!session_email.isEmpty() && !session_date.isEmpty() && !session_hash.isEmpty() && checkLoginHash(session_email, session_date, session_hash)){
-        		// pull the userID for a valid email address
-        		int userID = connectDB.getUserID(session_email);
-        		// if a user is logged in, default should be their landing page
-        		switch(action){
-    				case "/accpetBid": acceptBid(request, response, userID); break;
-    				case "/rejectBid": rejectBid(request, response, userID); break;
-    				case "/newBid": newBidPre(request, response, userID); break;
-    				case "/newBid2": newBidPost(request, response, userID); break;
-    				case "/editBid": editBidPre(request, response, userID); break;
-    				case "/editBid2": editBidPost(request, response, userID); break;
-    				case "/deleteBid": deleteBid(request, response, userID); break;
-    				default: bounceToDashboard(request, response); break;
-        		}
-        	}else{
-        		// session info failed. bounce to login
-        		request.getRequestDispatcher("Index.jsp").forward(request, response);
+        if(validateLogin(currentSession)){
+        	// pull the userID for a valid email address
+        	int userID = connectDB.getUserID((String)currentSession.getAttribute("Email"));
+        	// all pages reference user information, so save that as part of the request
+    		request.setAttribute("user", connectDB.getUser(userID));
+        	// if a user is logged in, default should be their landing page
+        	switch(action){
+        		case "/currentBids": bidList(request, response, userID); break;
+	        	case "/accpetBid": acceptBid(request, response, userID); break;
+	        	case "/rejectBid": rejectBid(request, response, userID); break;
+	        	case "/newBid": newBidPre(request, response, userID); break;
+	        	case "/newBid2": newBidPost(request, response, userID); break;
+	        	case "/editBid": editBidPre(request, response, userID); break;
+	        	case "/editBid2": editBidPost(request, response, userID); break;
+	        	case "/deleteBid": deleteBid(request, response, userID); break;
+	        	default: bounceToDashboard(request, response); break;
         	}
         }else{
         	// session info null, bounce to login
     		request.getRequestDispatcher("Index.jsp").forward(request, response);
         }
+	}
+
+	private void bidList(HttpServletRequest request, HttpServletResponse response, int userID) throws ServletException, IOException {
+//    	System.out.println("bidList started");
+    	request.setAttribute("buyerBidList", connectDB.listBidsForBidder(userID));
+    	request.getRequestDispatcher("bidlist.jsp").forward(request, response);
 	}
 
 	private void newBidPre(HttpServletRequest request, HttpServletResponse response, int userID) throws ServletException, IOException {
@@ -129,7 +145,7 @@ public class BidController extends HttpServlet {
 			request.getRequestDispatcher("bid.jsp").forward(request, response);
 		}else{
 //	    	System.out.println("newBidPre failed, going to dashboard");
-			request.getRequestDispatcher("/dashboard").forward(request, response);
+			request.getRequestDispatcher("/currentBids").forward(request, response);
 		}
 
 	}
@@ -164,7 +180,7 @@ public class BidController extends HttpServlet {
 		
 		if(problems.isEmpty()){
 //	    	System.out.println("newBidPost success, going to dashboard");
-			request.getRequestDispatcher("/dashboard").forward(request, response);
+			request.getRequestDispatcher("/currentBids").forward(request, response);
 		}else{
 //	    	System.out.println("newBidPost failed, reloading");
 			request.getRequestDispatcher("bid.jsp").forward(request, response);
@@ -191,30 +207,30 @@ public class BidController extends HttpServlet {
 				request.setAttribute("bid", myBid);
 			}
 		}else{
-			problems.add("unable to edit, invalid listing id error");
+			problems.add("unable to edit, invalid bid id error");
 			request.setAttribute("problems", problems);
 		}
 		
 		if(problems.isEmpty()){
-//	    	System.out.println("editBidPre success, going to listing.jsp");
+//	    	System.out.println("editBidPre success, going to bid.jsp");
 			request.getRequestDispatcher("bid.jsp").forward(request, response);
 		}else{
 //	    	System.out.println("editBidPre failed, going to dashboard");
-			request.getRequestDispatcher("/dashboard").forward(request, response);
+			request.getRequestDispatcher("/currentBids").forward(request, response);
 		}
 	}
 	
 	private void editBidPost(HttpServletRequest request, HttpServletResponse response, int userID) throws ServletException, IOException {
 //    	System.out.println("editBidPost started");
 		String bidID = request.getParameter("BidID");
-		String sellerID = request.getParameter("SellerID");
-		String itemID = request.getParameter("ItemID");
 		String quantity_requested = request.getParameter("MinPurchase");
 		String BaseCost = request.getParameter("BaseCost");
 		int bidNum = 0;
+    	System.out.println("editBidPost bidID: "+bidID+", minPurchase: "+quantity_requested+", BaseCose: "+BaseCost);
 
 		List<String> problems = new ArrayList<>();
-		problems.addAll(validateBid(sellerID, itemID, quantity_requested, BaseCost));
+		// don't care about sellerID and itemID for these purposes
+		problems.addAll(validateBid("1", "1", quantity_requested, BaseCost));
 
 		if(StringValidator.validInt(bidID)){
 			bidNum = Integer.parseInt(bidID);
@@ -225,7 +241,7 @@ public class BidController extends HttpServlet {
 		if(!problems.isEmpty()){
 			request.setAttribute("problems", problems);
 		}else{
-			//Input has no technical problems, migrate the listing.
+			//Input has no technical problems, migrate the bid.
 			// because we don't want to have a race condition between someone editing their bid and it being accepted, 
 			// we are going to create a new bid and delete the old one.
 			// read in the old one.
@@ -239,6 +255,7 @@ public class BidController extends HttpServlet {
     				problems.add("database connection error");
     				request.setAttribute("problems", problems);
     			}else{
+    		    	//System.out.println("editBidPost bidID: "+myBid.getBidID()+", minPurchase: "+myBid.getQuantity()+", BaseCose: "+myBid.getProposedPrice());
     				// we killed the old one, make a new one
     				if(connectDB.insertBid(myBid) == 0){
         				problems.add("database error, bid lost");
@@ -253,7 +270,7 @@ public class BidController extends HttpServlet {
 		
 		if(problems.isEmpty()){
 //	    	System.out.println("editBidPost success, going to dashboard");
-			request.getRequestDispatcher("/dashboard").forward(request, response);
+			request.getRequestDispatcher("/currentBids").forward(request, response);
 		}else{
 //	    	System.out.println("editBidPost failed, reloading");
 			request.getRequestDispatcher("bid.jsp").forward(request, response);
@@ -278,18 +295,18 @@ public class BidController extends HttpServlet {
 				request.setAttribute("problems", problems);
 			}else{
 				// we have a valid item, kill it
-				if(!connectDB.deleteListing(bidNum)){
+				if(!connectDB.deleteBid(bidNum)){
 					problems.add("error connecting to database");
 					request.setAttribute("problems", problems);
 				}
 			}
 		}else{
-			problems.add("unable to delete, invalid listing id error");
+			problems.add("unable to delete, invalid bid id error");
 			request.setAttribute("problems", problems);
 		}
 		// doesn't matter if there was an error, they are going to the same place
 //    	System.out.println("deleteBid finished, going to dashboard");
-		request.getRequestDispatcher("/dashboard").forward(request, response);
+		request.getRequestDispatcher("/currentBids").forward(request, response);
 	}
 	
 	private void acceptBid(HttpServletRequest request, HttpServletResponse response, int userID) throws ServletException, IOException {
@@ -351,12 +368,12 @@ public class BidController extends HttpServlet {
 				}
 			}
 		}else{
-			problems.add("unable to accept bid, invalid listing id error");
+			problems.add("unable to accept bid, invalid bid id error");
 			request.setAttribute("problems", problems);
 		}
 		// doesn't matter if there was an error, they are going to the same place
 //    	System.out.println("acceptBid finished, going to dashboard");
-		request.getRequestDispatcher("/dashboard").forward(request, response);
+		request.getRequestDispatcher("/currentBids").forward(request, response);
 	}
 
 	private void rejectBid(HttpServletRequest request, HttpServletResponse response, int userID) throws ServletException, IOException {
@@ -376,23 +393,40 @@ public class BidController extends HttpServlet {
 				request.setAttribute("problems", problems);
 			}else{
 				// we have a valid item
-				if(!connectDB.deleteListing(bidNum)){
+				if(!connectDB.deleteBid(bidNum)){
 					problems.add("error connecting to database");
 					request.setAttribute("problems", problems);
 				}
 			}
 		}else{
-			problems.add("unable to reject bid, invalid listing id error");
+			problems.add("unable to reject bid, invalid bid id error");
 			request.setAttribute("problems", problems);
 		}
 		// doesn't matter if there was an error, they are going to the same place
 //    	System.out.println("rejectBid finished, going to dashboard");
-		request.getRequestDispatcher("/dashboard").forward(request, response);
+		request.getRequestDispatcher("/currentBids").forward(request, response);
 		
 	}
 	
 	private void bounceToDashboard(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		request.getRequestDispatcher("/dashboard").forward(request, response);
+		request.getRequestDispatcher("/currentBids").forward(request, response);
+	}
+
+	private boolean validateLogin(HttpSession currentSession){
+		//every page here should be logged in before accessing, so check for login at start
+		if(currentSession!=null){
+			// a session exists
+			String session_email = (String)currentSession.getAttribute("Email");
+			String session_date = (String)currentSession.getAttribute("Date");
+			String session_hash = (String)currentSession.getAttribute("Hash");
+		    if(session_email != null && !session_email.isEmpty() && 
+		    	session_date != null &&!session_date.isEmpty() && 
+		    	session_hash != null && !session_hash.isEmpty() && 
+		    	checkLoginHash(session_email, session_date, session_hash)){
+		    	return true;
+		    }
+		}
+		return false;
 	}
 
 	private List<String> validateBid(String sellerID, String itemID, String quantity_requested, String proposed_price){

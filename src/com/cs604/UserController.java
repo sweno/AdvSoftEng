@@ -22,7 +22,7 @@ import com.cs604.validators.StringValidator;
  * Servlet implementation class UserController
  */
 @WebServlet(description = "handles users interaction", 
-			urlPatterns = {"/newUser", "/login", "/logout", "/dashboard", "/myAccount", "/updateUser", "/changePassword" })
+			urlPatterns = {"/newUser", "/login", "/logout", "/myAccount", "/updateUser", "/changePassword" })
 public class UserController extends HttpServlet {
 	private static final long serialVersionUID = 1L;
     private ConnectDAO connectDB;
@@ -61,7 +61,7 @@ public class UserController extends HttpServlet {
 			case "/newUser": parseNewUserForm(request, response); break;
 			case "/login": parseLoginPage(request, response); break;
 			case "/logout": parseLogoutPage(request, response); break;
-			case "/dashboard": parseDashboard(request, response); break;
+			case "/myAccount": buildAccountPage(request, response); break;
 			case "/updateUser": parseUpdateUser(request, response); break;
 			case "/changePassword": parseChangePassword(request, response); break;
 			default: parseWelcomePage(request, response); break;
@@ -88,11 +88,7 @@ public class UserController extends HttpServlet {
 		String p_Ship_State = request.getParameter("Ship_State");
 		String p_Ship_Zip = request.getParameter("Ship_Zip");
 		String p_Ship_Country = request.getParameter("Ship_Country");
-		
-		if(request.getParameter("Buyer") != null){
-			System.out.println("Parse newUser page, Buyer = "+request.getParameter("Buyer")+", Seller = "+request.getParameter("Seller"));
-		}
-		
+				
 		// set the request attributes so that we can reference them in error messages
 		request.setAttribute("name", p_name);
         request.setAttribute("email", p_email);
@@ -188,7 +184,7 @@ public class UserController extends HttpServlet {
 			request.setAttribute("problems", problems);
 			request.getRequestDispatcher("Index.jsp").forward(request, response);
 		}else{
-			request.getRequestDispatcher("userDashboard.jsp").forward(request, response);
+			request.getRequestDispatcher("myAccount.jsp").forward(request, response);
 		}
 	}
 	
@@ -205,57 +201,45 @@ public class UserController extends HttpServlet {
 		String url = "Index.jsp";
 		
         HttpSession currentSession = request.getSession(false);
-        if(currentSession!=null){
-        	// a session exists
-        	String session_email = (String)currentSession.getAttribute("Email");
-        	String session_date = (String)currentSession.getAttribute("Date");
-        	String session_hash = (String)currentSession.getAttribute("Hash");
-        	if(!session_email.isEmpty() && !session_date.isEmpty() && !session_hash.isEmpty() && 
-        		checkLoginHash(session_email, session_date, session_hash)){
-        		// if a user is logged in, default should be their landing page
-        		url = "dashboard";
-        	}
+        if(validateLogin(currentSession)){
+        	// if a user is logged in, default should be their landing page
+        	url = "/myAccount";
         }
 		request.getRequestDispatcher(url).forward(request, response);
 	}
 
 	
-	private void parseDashboard(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        // if a user is not logged in, we should kick them to the index page.
-		String url = "Index.jsp";
-		
-		// pull the current session if one exists
-        HttpSession currentSession = request.getSession(false);
-        if(currentSession!=null){
-        	// a session exists
-        	String session_email = (String)currentSession.getAttribute("Email");
-        	String session_date = (String)currentSession.getAttribute("Date");
-        	String session_hash = (String)currentSession.getAttribute("Hash");
-        	if(!session_email.isEmpty() && !session_date.isEmpty() && !session_hash.isEmpty() && 
-        		checkLoginHash(session_email, session_date, session_hash)){
-		    	//System.out.println("Building dashboard for user: " + session_email);
-        		url = "userDashboard.jsp";
-        		// user is logged in, so pull the necessary data from the DB to build their dashboard
-        		int userID = connectDB.getUserID(session_email);
-        		// we assume the user is valid, otherwise they couldn't have logged in
-    			User fullUser = connectDB.getUser(userID);
-    			request.setAttribute("user", fullUser);
-		        if(fullUser.getSellerFlag()){
-		        	request.setAttribute("sellerBidList", connectDB.listBidsForSeller(userID));
-		        	request.setAttribute("sellerItemList", connectDB.listProductsForUser(userID));
-		        	request.setAttribute("sellerList", connectDB.listAllUserListing(userID));
-		        }
-		        if(fullUser.getBuyerFlag()){
-		        	request.setAttribute("buyerBidList", connectDB.listBidsForBidder(userID));
-		        	request.setAttribute("buyerList", connectDB.listAllActiveListing());
-		        }
-        	}else{
-		    	System.out.println("failed dashboard for user: " + session_email);
-        	}
-        }
-    	//System.out.println("dashboard variables setup, passing onto RequestDispatcher");
-		request.getRequestDispatcher(url).forward(request, response);
-	}
+//	private void parseDashboard(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+//        // if a user is not logged in, we should kick them to the index page.
+//		String url = "Index.jsp";
+//		
+//		// pull the current session if one exists
+//        HttpSession currentSession = request.getSession(false);
+//		String session_email = (String)currentSession.getAttribute("Email");
+//        if(validateLogin(currentSession)){
+//		    //System.out.println("Building dashboard for user: " + session_email);
+//        	url = "userDashboard.jsp";
+//        	// user is logged in, so pull the necessary data from the DB to build their dashboard
+//       		int userID = connectDB.getUserID(session_email);
+//       		// we assume the user is valid, otherwise they couldn't have logged in
+//    		User fullUser = connectDB.getUser(userID);
+//    		request.setAttribute("user", fullUser);
+//		    if(fullUser.getSellerFlag()){
+//		       	request.setAttribute("sellerBidList", connectDB.listBidsForSeller(userID));
+//		       	request.setAttribute("sellerItemList", connectDB.listProductsForUser(userID));
+//		       	request.setAttribute("sellerList", connectDB.listAllUserListing(userID));
+//		    }
+//		    if(fullUser.getBuyerFlag()){
+//		    	request.setAttribute("buyerBidList", connectDB.listBidsForBidder(userID));
+//		    	request.setAttribute("buyerList", connectDB.listAllActiveListing());
+//		    }
+//    	}else{
+//	    	System.out.println("failed dashboard for user: " + session_email);
+//       	}
+//        
+//    	//System.out.println("dashboard variables setup, passing onto RequestDispatcher");
+//		request.getRequestDispatcher(url).forward(request, response);
+//	}
 
 	
 	private void buildAccountPage(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -309,7 +293,7 @@ public class UserController extends HttpServlet {
         	if(!session_email.isEmpty() && !session_date.isEmpty() && !session_hash.isEmpty() && 
         		checkLoginHash(session_email, session_date, session_hash)){
 		    	//System.out.println("updating info for user: " + session_email);
-        		url = "userDashboard.jsp"; //valid users should reload the dashboard
+        		url = "myAccount.jsp"; //valid users should reload the dashboard
         		        		
         		// get the meaningful request attributes		
         		String u_name = request.getParameter("name");
@@ -398,39 +382,47 @@ public class UserController extends HttpServlet {
 	}
 
 	private void parseChangePassword(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        // if a user is not logged in, we should kick them to the index page.
-		String url = "Index.jsp";
-		
 		// pull the current session if one exists
         HttpSession currentSession = request.getSession(false);
-        if(currentSession!=null){
-        	// a session exists
-        	String session_email = (String)currentSession.getAttribute("Email");
-        	String session_date = (String)currentSession.getAttribute("Date");
-        	String session_hash = (String)currentSession.getAttribute("Hash");
-        	if(!session_email.isEmpty() && !session_date.isEmpty() && !session_hash.isEmpty() && 
-        		checkLoginHash(session_email, session_date, session_hash)){
-		    	System.out.println("Building dashboard for user: " + session_email);
-        		url = "userDashboard.jsp";
-        		// user is logged in, so pull the necessary data from the DB to build their dashboard
-        		int userID = connectDB.getUserID(session_email);
-        		// we assume the user is valid, otherwise they couldn't have logged in
-    			User fullUser = connectDB.getUser(userID);
-    			request.setAttribute("user", fullUser);
-		        if(fullUser.getSellerFlag()){
-		        	request.setAttribute("sellerBidList", connectDB.listBidsForSeller(userID));
-		        	request.setAttribute("sellerItemList", connectDB.listProductsForUser(userID));
-		        	request.setAttribute("sellerList", connectDB.listAllUserListing(userID));
-		        }
-		        if(fullUser.getBuyerFlag()){
-		        	request.setAttribute("buyerBidList", connectDB.listBidsForBidder(userID));
-		        	request.setAttribute("buyerList", connectDB.listAllActiveListing());
-		        }
-        	}else{
-		    	System.out.println("failed dashboard for user: " + session_email);
+    	System.out.println("changing password for user");
+        if(validateLogin(currentSession)){
+        	System.out.println("changing password - session ok");
+    		String old_pass = request.getParameter("current");
+    		String new_pass1 = request.getParameter("new1");
+    		String new_pass2 = request.getParameter("new2");
+    		List<String> problems = new ArrayList<>();
+
+        	// before we hit the DB again, make sure that the inputs match
+			problems.addAll(validatePassword(old_pass, new_pass1, new_pass2));
+			
+    		if(problems.isEmpty()){ 
+    			//don't bother changing things if there are issues with inputs
+	    		// user is logged in, so pull the necessary data from the DB to validate input
+	    		int userID = connectDB.getUserID((String)currentSession.getAttribute("Email"));
+	    		// we assume the user is valid, otherwise they couldn't have logged in
+				User fullUser = connectDB.getUser(userID);
+				// update password
+				fullUser.setNewPasswordHash(old_pass, new_pass1);
+				if(!connectDB.updateUser(fullUser)){
+					//failed to save new user info
+					problems.add("failed to update database");
+				}
+				request.setAttribute("user", fullUser);
         	}
-        }
-		request.getRequestDispatcher(url).forward(request, response);
+        	
+    		if(!problems.isEmpty()){
+    			request.setAttribute("problems", problems);
+    			request.getRequestDispatcher("changePassword.jsp").forward(request, response);
+    		}else{
+    			request.getRequestDispatcher("myAccount.jsp").forward(request, response);
+    		}
+
+        	
+    	}else{
+    		// failed valid login
+	    	System.out.println("changing password - session failed");
+			request.getRequestDispatcher("Index.jsp").forward(request, response);
+    	}
 	}
 
 	private List<String> validateUser(String name, String email, String password, boolean buyer, boolean seller){
@@ -446,6 +438,27 @@ public class UserController extends HttpServlet {
 		}
 		return errors;
 	}
+	
+	private List<String> validatePassword(String old_pass, String new_pass1, String new_pass2){
+    	//System.out.println("validatePassword: "+old_pass+" "+new_pass1+" "+new_pass2);
+		List<String> errors = new ArrayList<>();
+		if (!StringValidator.validate(old_pass)){
+			errors.add("Current Password is mandatory");
+		}
+		if (!StringValidator.validate(new_pass1)){
+			errors.add("New Password is mandatory");
+		}
+		if (!StringValidator.validate(new_pass2)){
+			errors.add("New Password (confirm) is mandatory");
+		}
+    	if(!new_pass1.equals(new_pass2)){
+	    	//System.out.println("change password page, password miss-match");
+			errors.add("New passwords doesn't match");
+    	}
+
+		return errors;
+	}
+
 	
 	private List<String> validateAddr(String prefix, String street1, String street2, String city, String state, String zip, String country){
 		List<String> errors = new ArrayList<>();
@@ -472,13 +485,30 @@ public class UserController extends HttpServlet {
 	}
 	
 	private String newLoginHash(String email, String date){
-		//String base64Date = Base64.getEncoder().encodeToString(date.getBytes());
 		return Sha2Crypt.sha256Crypt(email.getBytes(), "$5$" + date);
 	}
 	
 	private boolean checkLoginHash(String email, String date, String hash){
-		//String base64Date = Base64.getEncoder().encodeToString(date.getBytes());
 		String validHash = Sha2Crypt.sha256Crypt(email.getBytes(), "$5$" + date);
 		return validHash.equals(hash);
 	}
+	
+	private boolean validateLogin(HttpSession currentSession){
+		//consolidate session checking
+		if(currentSession!=null){
+			// a session exists
+			String session_email = (String)currentSession.getAttribute("Email");
+			String session_date = (String)currentSession.getAttribute("Date");
+			String session_hash = (String)currentSession.getAttribute("Hash");
+	    	System.out.println("session check - email: "+session_email+", date: "+session_date+", hash: "+session_hash);
+			if(session_email != null && !session_email.isEmpty() && 
+		    	session_date != null &&!session_date.isEmpty() && 
+		    	session_hash != null && !session_hash.isEmpty() && 
+		    	checkLoginHash(session_email, session_date, session_hash)){
+		    	return true;
+		    }
+		}
+		return false;
+	}
+
 }

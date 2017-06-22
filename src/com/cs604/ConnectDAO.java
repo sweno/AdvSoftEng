@@ -724,7 +724,7 @@ public class ConnectDAO {
 	        						 results.getString("ProdName"),
 	        						 results.getString("BidDate"),
 	        						 results.getInt("BidQty"),
-	        						 results.getInt("BidAmount"), 
+	        						 results.getDouble("BidAmount"), 
 	        						 results.getBoolean("BidAccept"),
 	        						 results.getString("BidAcceptDate"));
 	        	bidList.add(newBid);
@@ -763,7 +763,7 @@ public class ConnectDAO {
 	        						 results.getString("ProdName"),
 	        						 results.getString("BidDate"),
 	        						 results.getInt("BidQty"),
-	        						 results.getInt("BidAmount"), 
+	        						 results.getDouble("BidAmount"), 
 	        						 results.getBoolean("BidAccept"),
 	        						 results.getString("BidAcceptDate"));
 	        }
@@ -801,7 +801,7 @@ public class ConnectDAO {
 	        						 results.getString("ProdName"),
 	        						 results.getString("BidDate"),
 	        						 results.getInt("BidQty"),
-	        						 results.getInt("BidAmount"), 
+	        						 results.getDouble("BidAmount"), 
 	        						 results.getBoolean("BidAccept"),
 	        						 results.getString("BidAcceptDate"));
 	        }
@@ -839,7 +839,7 @@ public class ConnectDAO {
 	        						 results.getString("ProdName"),
 	        						 results.getString("BidDate"),
 	        						 results.getInt("BidQty"),
-	        						 results.getInt("BidAmount"), 
+	        						 results.getDouble("BidAmount"), 
 	        						 results.getBoolean("BidAccept"),
 	        						 results.getString("BidAcceptDate"));
 	        	bidList.add(newBid);

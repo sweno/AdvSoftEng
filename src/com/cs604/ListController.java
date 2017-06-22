@@ -20,14 +20,11 @@ import com.cs604.validators.StringValidator;
  * Servlet implementation class ListController
  */
 @WebServlet(description = "handles listing actions", 
-urlPatterns = {"/newListing", "/newListing2", "/editListing", "/editListing2", "/deleteListing"})
+urlPatterns = {"/listings", "/currentListings", "/newListing", "/newListing2", "/editListing", "/editListing2", "/deleteListing"})
 public class ListController extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 	private ConnectDAO connectDB;
     
-    /**
-     * @see HttpServlet#HttpServlet()
-     */
     public ListController() {
         super();
     }
@@ -39,32 +36,42 @@ public class ListController extends HttpServlet {
         connectDB = ConnectDAO.getInstance(jdbcURL, jdbcUsername, jdbcPassword); 
     }
 
-	/**
-	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
-	 */
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		// TODO Auto-generated method stub
-		response.getWriter().append("Served at: ").append(request.getContextPath());
+		String action = request.getServletPath();
+		
+		//every item here should be logged in before accessing, so we can check for login right now
+		HttpSession currentSession = request.getSession(false);
+        if(validateLogin(currentSession)){
+        		// pull the userID for a valid email address
+        		int userID = connectDB.getUserID((String)currentSession.getAttribute("Email"));
+            	// all pages reference user information, so save that as part of the request
+        		request.setAttribute("user", connectDB.getUser(userID));
+        		// if a user is logged in, default should be their landing page
+        		switch(action){
+    				case "/listings": listingList(request, response, userID); break;
+    				case "/currentListings": bidListing(request, response, userID); break;
+    				default: bounceToDashboard(request, response); break;
+        		}
+        }else{
+        	// session info null, bounce to login
+    		request.getRequestDispatcher("Index.jsp").forward(request, response);
+        }
 	}
 
-	/**
-	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
-	 */
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		String action = request.getServletPath();
 		
 		//every item here should be logged in before accessing, so we can check for login right now
 		HttpSession currentSession = request.getSession(false);
-        if(currentSession!=null){
-        	// a session exists
-        	String session_email = (String)currentSession.getAttribute("Email");
-        	String session_date = (String)currentSession.getAttribute("Date");
-        	String session_hash = (String)currentSession.getAttribute("Hash");
-        	if(!session_email.isEmpty() && !session_date.isEmpty() && !session_hash.isEmpty() && checkLoginHash(session_email, session_date, session_hash)){
+        if(validateLogin(currentSession)){
         		// pull the userID for a valid email address
-        		int userID = connectDB.getUserID(session_email);
+        		int userID = connectDB.getUserID((String)currentSession.getAttribute("Email"));
+            	// all pages reference user information, so save that as part of the request
+        		request.setAttribute("user", connectDB.getUser(userID));
         		// if a user is logged in, default should be their landing page
         		switch(action){
+        			case "/listings": listingList(request, response, userID); break;
+    				case "/currentListings": bidListing(request, response, userID); break;
     				case "/newListing": newListingPre(request, response, userID); break;
     				case "/newListing2": newListingPost(request, response, userID); break;
     				case "/editListing": editListingPre(request, response, userID); break;
@@ -72,15 +79,25 @@ public class ListController extends HttpServlet {
     				case "/deleteListing": deleteListing(request, response, userID); break;
     				default: bounceToDashboard(request, response); break;
         		}
-        	}else{
-        		// session info failed. bounce to login
-        		request.getRequestDispatcher("Index.jsp").forward(request, response);
-        	}
         }else{
         	// session info null, bounce to login
     		request.getRequestDispatcher("Index.jsp").forward(request, response);
         }
 	}
+	
+	private void listingList(HttpServletRequest request, HttpServletResponse response, int userID) throws ServletException, IOException {
+//    	System.out.println("listingList started");
+       	request.setAttribute("sellerList", connectDB.listAllUserListing(userID));
+       	request.setAttribute("sellerBidList", connectDB.listBidsForSeller(userID));
+    	request.getRequestDispatcher("listinglist.jsp").forward(request, response);
+	}
+
+	private void bidListing(HttpServletRequest request, HttpServletResponse response, int userID) throws ServletException, IOException {
+//    	System.out.println("bidListing started");
+    	request.setAttribute("buyerList", connectDB.listAllActiveListing());
+    	request.getRequestDispatcher("bidListing.jsp").forward(request, response);
+	}
+
 	private void newListingPre(HttpServletRequest request, HttpServletResponse response, int userID) throws ServletException, IOException {
 //    	System.out.println("newListingPre started");
         // pull the Product ID
@@ -115,7 +132,7 @@ public class ListController extends HttpServlet {
 			request.getRequestDispatcher("listing.jsp").forward(request, response);
 		}else{
 //	    	System.out.println("newListingPre failed, going to dashboard");
-			request.getRequestDispatcher("/dashboard").forward(request, response);
+			request.getRequestDispatcher("/listings").forward(request, response);
 		}
 	}
 
@@ -150,7 +167,7 @@ public class ListController extends HttpServlet {
 		
 		if(problems.isEmpty()){
 //	    	System.out.println("newListingPost success, going to dashboard");
-			request.getRequestDispatcher("/dashboard").forward(request, response);
+			request.getRequestDispatcher("/listings").forward(request, response);
 		}else{
 //	    	System.out.println("newListingPost failed, going to reload");
 			request.getRequestDispatcher("listing.jsp").forward(request, response);
@@ -187,7 +204,7 @@ public class ListController extends HttpServlet {
 			request.getRequestDispatcher("listing.jsp").forward(request, response);
 		}else{
 //	    	System.out.println("editListingPre failed, going to dashboard");
-			request.getRequestDispatcher("/dashboard").forward(request, response);
+			request.getRequestDispatcher("/listings").forward(request, response);
 		}
 	}
 	
@@ -201,7 +218,7 @@ public class ListController extends HttpServlet {
 		String l_minPurchase = request.getParameter("MinPurchase");
 		int listNum = 0;
 		int itemNum = 0;
-		System.out.println("editListingPost params - listingID: "+listID+", product: "+itemID+", StartDate: "+l_startDate+", EndDate: "+l_endDate+", BaseCost: "+l_baseCost+", MinPurchase: "+l_minPurchase);
+		//System.out.println("editListingPost params - listingID: "+listID+", product: "+itemID+", StartDate: "+l_startDate+", EndDate: "+l_endDate+", BaseCost: "+l_baseCost+", MinPurchase: "+l_minPurchase);
 		List<String> problems = new ArrayList<>();
 		problems.addAll(validateList(itemID, l_startDate, l_endDate, l_baseCost, l_minPurchase));
 		if(StringValidator.validInt(listID)){
@@ -228,10 +245,10 @@ public class ListController extends HttpServlet {
 		}
 		
 		if(problems.isEmpty()){
-//	    	System.out.println("editListingPost success, going to dashboard");
-			request.getRequestDispatcher("/dashboard").forward(request, response);
+	    	System.out.println("editListingPost success, going to listing view");
+			request.getRequestDispatcher("/listings").forward(request, response);
 		}else{
-//	    	System.out.println("editListingPost failed, reloading");
+	    	System.out.println("editListingPost failed, reloading");
 			request.getRequestDispatcher("listing.jsp").forward(request, response);
 		}
 	}
@@ -265,14 +282,29 @@ public class ListController extends HttpServlet {
 		
 		// doesn't matter if there was an error, they are going to the same place
 //    	System.out.println("deleteListing finished, going to dashboard");
-		request.getRequestDispatcher("/dashboard").forward(request, response);
+		request.getRequestDispatcher("/listings").forward(request, response);
 	}
 	
 	private void bounceToDashboard(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		request.getRequestDispatcher("/dashboard").forward(request, response);
+		request.getRequestDispatcher("/myAccount").forward(request, response);
 	}
 
-
+	private boolean validateLogin(HttpSession currentSession){
+		//every page here should be logged in before accessing, so check for login at start
+		if(currentSession!=null){
+			// a session exists
+			String session_email = (String)currentSession.getAttribute("Email");
+			String session_date = (String)currentSession.getAttribute("Date");
+			String session_hash = (String)currentSession.getAttribute("Hash");
+		    if(session_email != null && !session_email.isEmpty() && 
+		    	session_date != null &&!session_date.isEmpty() && 
+		    	session_hash != null && !session_hash.isEmpty() && 
+		    	checkLoginHash(session_email, session_date, session_hash)){
+		    	return true;
+		    }
+		}
+		return false;
+	}
 
 	private boolean checkLoginHash(String email, String date, String hash){
 		//String base64Date = Base64.getEncoder().encodeToString(date.getBytes());

@@ -12,7 +12,7 @@
       
     <ul class="nav navbar-nav navbar-right">
         <li><a class="noStyle">Welcome <c:out value="${user.name}"/></a></li>
-        <li><a href="/logout">Log out</a></li>
+        <li><a href="${pageContext.request.contextPath}/logout">Log out</a></li>
     </ul>
       </div>
   </div>

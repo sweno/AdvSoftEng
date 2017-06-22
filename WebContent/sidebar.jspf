@@ -6,6 +6,6 @@
 		<div class="mainDashHeadOptionsDesk"><a href="${pageContext.request.contextPath}/listings">Active Listings</a></div>
 		<div class="mainDashHeadDesk inactive"><a>My Buying Terminal</a></div>
 		<div class="mainDashHeadOptionsDesk"><a href="${pageContext.request.contextPath}/currentBids">Current Bids</a></div>
-		<div class="mainDashHeadOptionsDesk"><a href="${pageContext.request.contextPath}/newBids">New Bids</a></div></center>
+		<div class="mainDashHeadOptionsDesk"><a href="${pageContext.request.contextPath}/currentListings">New Bids</a></div></center>
 	</div>
 </div>

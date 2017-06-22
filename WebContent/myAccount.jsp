@@ -14,7 +14,7 @@
 				<form action="${pageContext.request.contextPath}/updateUser" method="post">
         <label for="name">Company Name : </label> <input type="text" name="name" id="name" value="<c:out value="${user.name}"/>"><br>
         Email: <c:out value="${user.email}"/><br>
-        Password: <a href="${pageContext.request.contextPath}/changepassword.jsp">Change Password</a><br>
+        Password: <a href="${pageContext.request.contextPath}/changePassword.jsp">Change Password</a><br>
         Business Type: <label for="Buyer">Buyer: </label> <input type="checkbox" name="Buyer" id="Buyer" <c:if test="${user.getBuyerFlag()}">checked</c:if>> 
         &nbsp;<label for="Seller">Seller: </label> <input type="checkbox" name="Seller" id="Seller" <c:if test="${user.getSellerFlag()}">checked</c:if>><br>
         Billing Address:<br>
