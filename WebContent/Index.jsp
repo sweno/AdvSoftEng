@@ -127,11 +127,8 @@
                     
 					<div class="rw-words rw-words-1">
 						<span>Perfectly</span>
-						<span>with continus efforts</span>
+						<span>with continuous efforts</span>
 						<span>having one goal in mind</span>
-						<span>unseen experiences</span>
-						<span>happy feelings</span>
-						<span>beautiful butterflies</span>
 					</div>
 					<br />
 					<span>Which helps business achieve</span>
