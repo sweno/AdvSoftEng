@@ -82,4 +82,8 @@ public class Address{
 		return full_name + "\n" + street_1 + "\n" + street_2  + "\n" + city + ", " + state +" "+zip+"\n"+country;
 	}
 	
+	public String asHTMLString(){
+		return full_name + "<br/>\n" + street_1 + "<br/>\n" + street_2  + "<br/>\n" + city + ", " + state +" "+zip+"<br/>\n"+country+"<br/>\n";
+	}
+	
 }

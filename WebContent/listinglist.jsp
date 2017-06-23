@@ -71,6 +71,10 @@
 							</form>
 							</c:when>
 							<c:otherwise>Bid Accepted: <c:out value="${bid.getBidAcceptedDate()}" />
+							<form action="${pageContext.request.contextPath}/sellerDetailsBid" method="post">
+								<input type="hidden" name="id" value="<c:out value='${bid.getBidID()}'/>"/>
+								<input type="submit" class="btn btn-primary" name="Details" value="Details">
+							</form>
 							<form action="${pageContext.request.contextPath}/rejectBid" method="post">
 								<input type="hidden" name="id" value="<c:out value='${bid.getBidID()}'/>"/>
 								<input type="submit" class="btn btn-danger" name="Clear" value="Clear">

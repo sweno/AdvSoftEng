@@ -9,11 +9,11 @@ public class EmailNotifier {
 	private DefaultAuthenticator defAuth;
 	private String fromAddr;
 	
-    public EmailNotifier(String name, String pass, String host){
+    public EmailNotifier(String name, String pass, String host, String fromAddr){
     	hostname = host;
     	port = 465;
     	defAuth = new DefaultAuthenticator(name, pass);
-    	fromAddr = "dev_mailer@totenpass.com";
+    	this.fromAddr = fromAddr;
     }
 	
     public void notify_seller(String name, String sellerEmail, String productName, int amount, double cost, Address destination){
@@ -28,6 +28,8 @@ public class EmailNotifier {
     	
     	try{
     	Email email = new SimpleEmail();
+    	//set up debugging
+//    	email.setDebug(true);
     	email.setHostName(hostname);
     	email.setSmtpPort(port);
     	email.setAuthenticator(defAuth);

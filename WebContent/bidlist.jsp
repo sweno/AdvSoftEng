@@ -21,13 +21,14 @@
 						<th>Actions</th>
 					</tr>
 					<c:forEach var="bid" items="${buyerBidList}">
-						<tr>
+						<tr<c:if test="${bid.getBidAccepted()}"> class="bid_accepted"</c:if>>
 							<td><c:out value="${bid.getSeller_name()}" /></td>
 							<td><c:out value="${bid.getItem_name()}" /></td>
 							<td><c:out value="${bid.getPostedDate()}" /></td>
 							<td><c:out value="${bid.getQuantity()}" /></td>
 							<td><c:out value="${bid.getProposedPrice()}" /></td>
 							<td>
+							<c:choose><c:when test="${not bid.getBidAccepted()}">
 							<form action="${pageContext.request.contextPath}/editBid" method="post">
 								<input type="hidden" name="id" value="<c:out value='${bid.getBidID()}'/>"/>
 								<input type="submit" class="btn btn-primary" name="Edit" value="Edit">
@@ -36,6 +37,17 @@
 								<input type="hidden" name="id" value="<c:out value='${bid.getBidID()}'/>"/>
 								<input type="submit" class="btn btn-danger" name="Delete" value="Delete">
 							</form>
+							</c:when>
+							<c:otherwise>Bid Accepted: <c:out value="${bid.getBidAcceptedDate()}" />
+							<form action="${pageContext.request.contextPath}/buyerDetailsBid" method="post">
+								<input type="hidden" name="id" value="<c:out value='${bid.getBidID()}'/>"/>
+								<input type="submit" class="btn btn-primary" name="Details" value="Details">
+							</form>
+							<form action="${pageContext.request.contextPath}/deleteBid" method="post">
+								<input type="hidden" name="id" value="<c:out value='${bid.getBidID()}'/>"/>
+								<input type="submit" class="btn btn-danger" name="Clear" value="Clear">
+							</form>
+							</c:otherwise></c:choose>
 							</td>
 						</tr>
 					</c:forEach>

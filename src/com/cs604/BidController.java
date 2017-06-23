@@ -20,7 +20,7 @@ import com.cs604.validators.StringValidator;
  * Servlet implementation class BidController
  */
 @WebServlet(description = "handles biding actions", 
-			urlPatterns = {"/currentBids", "/accpetBid", "/rejectBid", "/newBid", "/newBid2", "/editBid", "/editBid2", "/deleteBid"})
+			urlPatterns = {"/currentBids", "/accpetBid", "/rejectBid", "/buyerDetailsBid", "/sellerDetailsBid", "/newBid", "/newBid2", "/editBid", "/editBid2", "/deleteBid"})
 public class BidController extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 	private ConnectDAO connectDB;
@@ -43,7 +43,7 @@ public class BidController extends HttpServlet {
         String emailusername = getServletContext().getInitParameter("emailUsername");
         String emailpassword = getServletContext().getInitParameter("emailPassword");
         String emailhost = getServletContext().getInitParameter("emailHost");
-        mailer = new EmailNotifier(emailusername, emailpassword, emailhost);
+        mailer = new EmailNotifier(emailusername, emailpassword, emailhost, emailusername);
     }
 
 	/**
@@ -88,6 +88,8 @@ public class BidController extends HttpServlet {
         		case "/currentBids": bidList(request, response, userID); break;
 	        	case "/accpetBid": acceptBid(request, response, userID); break;
 	        	case "/rejectBid": rejectBid(request, response, userID); break;
+	        	case "/buyerDetailsBid": detailsBid(request, response, userID, true); break;
+	        	case "/sellerDetailsBid": detailsBid(request, response, userID, false); break;
 	        	case "/newBid": newBidPre(request, response, userID); break;
 	        	case "/newBid2": newBidPost(request, response, userID); break;
 	        	case "/editBid": editBidPre(request, response, userID); break;
@@ -373,7 +375,7 @@ public class BidController extends HttpServlet {
 		}
 		// doesn't matter if there was an error, they are going to the same place
 //    	System.out.println("acceptBid finished, going to dashboard");
-		request.getRequestDispatcher("/currentBids").forward(request, response);
+		request.getRequestDispatcher("/listings").forward(request, response);
 	}
 
 	private void rejectBid(HttpServletRequest request, HttpServletResponse response, int userID) throws ServletException, IOException {
@@ -404,9 +406,58 @@ public class BidController extends HttpServlet {
 		}
 		// doesn't matter if there was an error, they are going to the same place
 //    	System.out.println("rejectBid finished, going to dashboard");
-		request.getRequestDispatcher("/currentBids").forward(request, response);
+		request.getRequestDispatcher("/listings").forward(request, response);
 		
 	}
+	
+	private void detailsBid(HttpServletRequest request, HttpServletResponse response, int userID, boolean isBuyer) throws ServletException, IOException {
+    	//System.out.println("detailsBid started");
+        // pull the Bid ID
+		String bidID = request.getParameter("id");
+		int bidNum = 0;
+		Bid myBid;
+		Address otherAddr = null;
+
+		//validate that the bidID is actually a number
+		List<String> problems = new ArrayList<>();
+		if(StringValidator.validInt(bidID)){
+			bidNum = Integer.parseInt(bidID);
+			// query the DB
+			if(isBuyer){
+				myBid = connectDB.getBidForBidder(userID, bidNum);
+				otherAddr = connectDB.getUser(myBid.getSellerID()).getBillingAddress();
+			}else{
+				myBid = connectDB.getBidForSeller(userID, bidNum);
+				otherAddr = connectDB.getUser(myBid.getBuyerID()).getShippingAddress();
+
+			}
+			if(myBid == null){
+				problems.add("no such bid for user");
+				request.setAttribute("problems", problems);
+			}else{
+				// we have a valid bid
+				request.setAttribute("details", myBid);
+				request.setAttribute("address", otherAddr);
+			}
+		}else{
+			problems.add("unable to get deails, invalid bid id error");
+			request.setAttribute("problems", problems);
+		}
+		
+		if(problems.isEmpty()){
+//	    	System.out.println("detailsBid success, going to bid.jsp");
+			request.getRequestDispatcher("bid.jsp").forward(request, response);
+		}else{
+//	    	System.out.println("detailsBid failed, going to dashboard");
+			if(isBuyer){
+				request.getRequestDispatcher("/currentBids").forward(request, response);
+			}else{
+				request.getRequestDispatcher("/listings").forward(request, response);
+			}
+
+		}
+	}
+
 	
 	private void bounceToDashboard(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		request.getRequestDispatcher("/currentBids").forward(request, response);
